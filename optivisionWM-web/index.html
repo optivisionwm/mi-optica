@@ -741,16 +741,26 @@
         if ('scrollRestoration' in history) {
             history.scrollRestoration = 'manual';
         }
-        window.scrollTo(0, 0);
-
+        window.addEventListener('beforeunload', () => {
+            window.scrollTo(0, 0);
+        });
+        
         // --- Preloader + Intro ---
         window.addEventListener('load', () => {
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+                ScrollTrigger.refresh();
+            }, 50);
+
             gsap.to('#preloader', {
                 opacity:0, duration:.8, delay:.7,
                 onComplete: () => document.getElementById('preloader').classList.add('hidden'),
             });
             gsap.timeline({ delay:1.1 })
-                .fromTo('#hero-logo', { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 1.4, ease: 'power2.out' })
+                .fromTo('#hero-logo', 
+                    { opacity: 0, scale: 0.85, xPercent: -50, yPercent: -50 }, 
+                    { opacity: 1, scale: 1, xPercent: -50, yPercent: -50, duration: 1.4, ease: 'power2.out' }
+                )
                 .to('#hero-tagline', { opacity:1, duration:1, ease:'power2.out' }, '-=.6')
                 .to('#main-nav', { opacity:1, duration:.8, ease:'power2.out' }, '-=.4');
         });
