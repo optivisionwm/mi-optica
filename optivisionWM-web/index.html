@@ -756,13 +756,11 @@
                 opacity:0, duration:.8, delay:.7,
                 onComplete: () => document.getElementById('preloader').classList.add('hidden'),
             });
-            gsap.timeline({ delay:1.1 })
-                .fromTo('#hero-logo', 
-                    { opacity: 0, scale: 0.85, xPercent: -50, yPercent: -50 }, 
-                    { opacity: 1, scale: 1, xPercent: -50, yPercent: -50, duration: 1.4, ease: 'power2.out' }
-                )
-                .to('#hero-tagline', { opacity:1, duration:1, ease:'power2.out' }, '-=.6')
-                .to('#main-nav', { opacity:1, duration:.8, ease:'power2.out' }, '-=.4');
+            // La animación de entrada del logo se elimina porque entraba en conflicto con el ScrollTrigger al recargar (F5)
+            // El preloader ya cumple la función de revelar la pantalla con suavidad.
+            gsap.timeline({ delay: 1.1 })
+                .to('#hero-tagline', { opacity:1, duration:1, ease:'power2.out' })
+                .to('#main-nav', { opacity:1, duration:.8, ease:'power2.out' }, '-=.6');
         });
 
 
@@ -776,23 +774,36 @@
         const navLogoLeft = 14;
         const navLogoWidth = 150; // Un poco más grande para coincidir con la transición
 
-        gsap.to(logoEl, {
-            scrollTrigger: {
-                trigger: '#hero',
-                start: 'top top',
-                end: () => window.innerHeight * 0.55 + ' top',
-                scrub: 1.2,
-                onLeave: () => gsap.set(logoEl, { visibility: 'hidden' }),
-                onEnterBack: () => gsap.set(logoEl, { visibility: 'visible' })
+        gsap.fromTo(logoEl, 
+            {
+                // ESTADO INICIAL ESTRICTO (Para evitar errores al dar F5)
+                top: '50%',
+                left: '50%',
+                xPercent: -50,
+                yPercent: -50,
+                width: '76vw',
+                opacity: 1
             },
-            top: navLogoTop + 'px',
-            left: navLogoLeft + 'px',
-            xPercent: 0,
-            yPercent: 0,
-            width: navLogoWidth + 'px',
-            opacity: 0,
-            ease: 'power2.inOut',
-        });
+            {
+                // ESTADO FINAL AL HACER SCROLL
+                scrollTrigger: {
+                    trigger: '#hero',
+                    start: 'top top',
+                    end: () => window.innerHeight * 0.55 + ' top',
+                    scrub: 1.2,
+                    onLeave: () => gsap.set(logoEl, { visibility: 'hidden' }),
+                    onEnterBack: () => gsap.set(logoEl, { visibility: 'visible' })
+                },
+                top: navLogoTop + 'px',
+                left: navLogoLeft + 'px',
+                xPercent: 0,
+                yPercent: 0,
+                width: navLogoWidth + 'px',
+                opacity: 0,
+                ease: 'power2.inOut',
+                immediateRender: true
+            }
+        );
 
 
         // ============================================================
