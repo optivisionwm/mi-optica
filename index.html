@@ -498,17 +498,24 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                 <!-- Mapa + Dirección -->
                 <div id="ct-left" style="opacity:0;transform:translateX(-30px);">
-                    <div class="h-72 rounded-xl overflow-hidden border border-brand-border">
+                    <a href="https://maps.google.com/?q=Mall+Apumanque+Local+132,+Las+Condes" target="_blank" rel="noopener noreferrer" class="block relative h-72 rounded-xl overflow-hidden border border-brand-border group cursor-pointer shadow-sm hover:shadow-lg transition-shadow">
+                        <!-- Capa visual estética al pasar el mouse o tocar -->
+                        <div class="absolute inset-0 bg-brand-text/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center backdrop-blur-[2px]">
+                            <span class="bg-white text-brand-text px-5 py-2.5 rounded-full text-sm font-outfit font-medium flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-md">
+                                <svg class="w-4 h-4 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                Abrir en Google Maps
+                            </span>
+                        </div>
                         <iframe 
                             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3330.125134706915!2d-70.5694294!3d-33.4116499!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9662ce8b4d8d179b%3A0x633fc2ed57270830!2sMall%20Apumanque!5e0!3m2!1ses-419!2scl!4v1700000000000!5m2!1ses-419!2scl" 
                             width="100%" 
                             height="100%" 
-                            style="border:0;" 
+                            style="border:0; pointer-events:none;" 
                             allowfullscreen="" 
                             loading="lazy" 
                             referrerpolicy="no-referrer-when-downgrade">
                         </iframe>
-                    </div>
+                    </a>
                     <div class="mt-6 flex items-start gap-4">
                         <div class="feature-icon mt-0.5">
                             <svg class="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
