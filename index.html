@@ -291,9 +291,8 @@
             width:100%; height:auto; display:block;
         }
         /* Capa de oscurecimiento recortada al SVG de los cristales */
-        .lens-tint-overlay {
+        .capa-fotocromatica {
             position:absolute; inset:0;
-            background: rgba(45,30,15,.75);
             opacity:0; /* GSAP controla esto */
         }
         /* Indicador de progreso del fotocromático */
@@ -547,21 +546,10 @@
         <div class="photo-scroll-container" style="height:400vh; position:relative;">
             <div class="sticky top-0 h-screen flex flex-col items-center justify-center px-4">
                 <div class="photo-scene">
-                    <!-- SVG para definir las formas de recorte (clipPath) de los cristales -->
-                    <svg width="0" height="0" style="position:absolute;">
-                        <defs>
-                            <clipPath id="lens-clip" clipPathUnits="objectBoundingBox">
-                                <!-- Cristal izquierdo (Cálculo ajustado hacia arriba) -->
-                                <path d="M 0.250 0.330 L 0.300 0.335 L 0.350 0.345 L 0.380 0.365 L 0.400 0.395 L 0.420 0.425 L 0.430 0.465 L 0.440 0.515 L 0.440 0.565 L 0.430 0.655 L 0.400 0.725 L 0.350 0.775 L 0.300 0.800 L 0.250 0.805 L 0.200 0.800 L 0.150 0.775 L 0.100 0.725 L 0.070 0.655 L 0.055 0.565 L 0.055 0.515 L 0.060 0.465 L 0.080 0.425 L 0.100 0.395 L 0.120 0.365 L 0.150 0.345 L 0.200 0.335 Z" />
-                                <!-- Cristal derecho (Cálculo ajustado hacia arriba) -->
-                                <path d="M 0.750 0.330 L 0.800 0.335 L 0.850 0.345 L 0.880 0.365 L 0.900 0.395 L 0.920 0.425 L 0.940 0.465 L 0.945 0.515 L 0.945 0.565 L 0.930 0.655 L 0.900 0.725 L 0.850 0.775 L 0.800 0.800 L 0.750 0.805 L 0.700 0.800 L 0.650 0.775 L 0.600 0.725 L 0.570 0.655 L 0.560 0.565 L 0.560 0.515 L 0.570 0.465 L 0.580 0.425 L 0.600 0.395 L 0.620 0.365 L 0.650 0.345 L 0.700 0.335 Z" />
-                            </clipPath>
-                        </defs>
-                    </svg>
-                    <!-- Foto base del sunset con lentes -->
-                    <img src="assets/lens-sunset-1.jpg" alt="Lentes con atardecer" />
-                    <!-- Capa de oscurecimiento RECORTADA únicamente a la forma de los cristales -->
-                    <div id="lens-tint" class="lens-tint-overlay" style="clip-path:url(#lens-clip);"></div>
+                    <!-- Imagen Base (Cristal Claro) -->
+                    <img src="assets/filtros_1.jpg" alt="Lentes Transparentes" />
+                    <!-- Imagen Destino (Cristal Oscuro Fotocromático), posicionada exactamente encima -->
+                    <img src="assets/filtros_2.jpg" id="lens-tint" class="capa-fotocromatica" alt="Lentes Oscuros" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0;" />
                     <!-- Label flotante -->
                     <div class="photo-label" id="photo-label">Cristal Transparente</div>
                     <!-- Barra de progreso -->
@@ -1162,7 +1150,7 @@
                     document.body.style.overflow = '';
                     filterModal.scrollTop = 0;
                     if (modalST) { modalST.kill(); modalST = null; }
-                    const tint = document.getElementById('lens-tint');
+                    const tint = document.querySelector('.capa-fotocromatica');
                     const progress = document.getElementById('photo-progress');
                     const label = document.getElementById('photo-label');
                     if (tint) tint.style.opacity = 0;
@@ -1177,7 +1165,7 @@
 
         function initPhotoScrollTrigger() {
             const container = filterModal.querySelector('.photo-scroll-container');
-            const tint = document.getElementById('lens-tint');
+            const tint = filterModal.querySelector('.capa-fotocromatica');
             const progressBar = document.getElementById('photo-progress');
             const label = document.getElementById('photo-label');
 
