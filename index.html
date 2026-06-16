@@ -188,6 +188,132 @@
         .animate-marquee:hover {
             animation-play-state: paused;
         }
+
+        /* --- Botón Ver Más --- */
+        .btn-ver-mas {
+            display:inline-flex; align-items:center; gap:8px;
+            padding:12px 28px; border:1.5px solid #C4974A; color:#C4974A;
+            font-family:'Outfit',sans-serif; font-weight:500; font-size:.82rem;
+            letter-spacing:.06em; border-radius:8px; text-decoration:none;
+            background:transparent; cursor:pointer;
+            transition: background .3s, color .3s, transform .2s, box-shadow .3s;
+        }
+        .btn-ver-mas:hover {
+            background:#C4974A; color:#fff; transform:translateY(-2px);
+            box-shadow:0 8px 24px rgba(196,151,74,.25);
+        }
+
+        /* --- Modal Filtros --- */
+        #filter-modal {
+            position:fixed; inset:0; z-index:9998;
+            background:#FAF8F4;
+            overflow-y:auto; overflow-x:hidden;
+            visibility:hidden; opacity:0;
+        }
+        #filter-modal.active { visibility:visible; opacity:1; }
+
+        .filter-modal-close {
+            position:fixed; top:20px; right:24px; z-index:10000;
+            width:48px; height:48px; border-radius:50%;
+            background:rgba(250,248,244,.92); border:1px solid #E8E5E0;
+            display:flex; align-items:center; justify-content:center;
+            cursor:pointer; transition: background .3s, transform .3s;
+            backdrop-filter:blur(12px);
+        }
+        .filter-modal-close:hover { background:#C4974A; transform:scale(1.1); }
+        .filter-modal-close:hover svg { stroke:#fff; }
+
+        /* Lente fijo (pinned) dentro de cada bloque */
+        .lens-viewport {
+            position:relative; width:100%; height:70vh;
+            display:flex; align-items:center; justify-content:center;
+        }
+        .lens-viewport img {
+            width:100%; max-width:600px; height:auto;
+            object-fit:contain; border-radius:16px;
+        }
+
+        /* Capas de filtro visual */
+        .filter-overlay {
+            position:absolute; inset:0; border-radius:16px;
+            pointer-events:none; opacity:0;
+            transition: opacity .1s;
+        }
+        .filter-overlay.antireflejo {
+            background: linear-gradient(135deg, rgba(180,220,255,.12) 0%, transparent 50%, rgba(180,220,255,.08) 100%);
+            mix-blend-mode: screen;
+        }
+        .filter-overlay.fotocromatico {
+            background: rgba(60,40,20,.45);
+            mix-blend-mode: multiply;
+        }
+        .filter-overlay.luzazul {
+            background: linear-gradient(180deg, rgba(255,200,60,.08) 0%, rgba(255,180,40,.12) 100%);
+            mix-blend-mode: color;
+        }
+        .filter-overlay.uv400 {
+            background: linear-gradient(180deg, rgba(196,151,74,.06) 0%, rgba(196,151,74,.1) 100%);
+            box-shadow: inset 0 0 60px rgba(196,151,74,.15);
+        }
+
+        /* Etiqueta flotante del filtro activo */
+        .filter-label {
+            position:absolute; bottom:12%; left:50%; transform:translateX(-50%);
+            font-family:'Outfit',sans-serif; font-weight:600;
+            font-size:clamp(.8rem, 2vw, 1rem); letter-spacing:.1em; text-transform:uppercase;
+            color:#C4974A; background:rgba(250,248,244,.88);
+            padding:10px 24px; border-radius:50px; border:1px solid #E8E5E0;
+            backdrop-filter:blur(10px); opacity:0; white-space:nowrap;
+        }
+
+        /* Barra de progreso de filtros */
+        .filter-progress {
+            position:sticky; top:16px; z-index:10;
+            display:flex; align-items:center; justify-content:center; gap:8px;
+            padding:10px 0;
+        }
+        .filter-dot {
+            width:8px; height:8px; border-radius:50%;
+            background:#E8E5E0; transition: background .3s, transform .3s;
+        }
+        .filter-dot.active { background:#C4974A; transform:scale(1.4); }
+        .filter-dot-label {
+            font-family:'Outfit',sans-serif; font-size:.7rem; color:#71706E;
+            letter-spacing:.08em; margin-left:4px;
+        }
+
+        /* --- Fotocromático: Lente con SVG clipPath --- */
+        .photo-scene {
+            position:relative; width:100%; max-width:700px; margin:0 auto;
+            border-radius:16px; overflow:hidden;
+        }
+        .photo-scene img {
+            width:100%; height:auto; display:block;
+        }
+        /* Capa de oscurecimiento recortada al SVG de los cristales */
+        .lens-tint-overlay {
+            position:absolute; inset:0;
+            background: rgba(45,30,15,.75);
+            opacity:0; /* GSAP controla esto */
+        }
+        /* Indicador de progreso del fotocromático */
+        .photo-progress-bar {
+            position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
+            width:180px; height:4px; background:rgba(255,255,255,.2);
+            border-radius:2px; overflow:hidden;
+        }
+        .photo-progress-fill {
+            width:0%; height:100%; background:#C4974A;
+            border-radius:2px; transition:width .1s;
+        }
+        .photo-label {
+            position:absolute; top:20px; left:50%; transform:translateX(-50%);
+            font-family:'Outfit',sans-serif; font-weight:600;
+            font-size:clamp(.75rem, 1.8vw, .95rem); letter-spacing:.12em; text-transform:uppercase;
+            color:#fff; background:rgba(0,0,0,.35);
+            padding:8px 20px; border-radius:50px;
+            backdrop-filter:blur(8px); white-space:nowrap;
+        }
     </style>
 </head>
 
@@ -365,7 +491,11 @@
                         <svg class="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     </div>
                     <h3 class="text-lg font-outfit font-semibold text-brand-text mb-3">Protección Completa</h3>
-                    <p class="text-brand-muted text-sm leading-relaxed">Antirreflejo multicapa (HMC), filtro de luz azul y UV400. Alto índice 1.56 a 1.67 y policarbonato.</p>
+                    <p class="text-brand-muted text-sm leading-relaxed">Antireflejo, fotocromaticos, filtro de luz azul y UV400. Alto índice 1.56 a 1.67 y policarbonato.</p>
+                    <button id="open-filter-modal" class="btn-ver-mas mt-5 w-full justify-center">
+                        Ver más
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
                 </div>
             </div>
 
@@ -389,6 +519,69 @@
             </div>
         </div>
     </section>
+
+
+    <!-- ===========================================================
+         MODAL — PRUEBA DE FOTOCROMÁTICOS
+         =========================================================== -->
+    <div id="filter-modal">
+        <!-- Botón Cerrar -->
+        <button class="filter-modal-close" id="close-filter-modal" aria-label="Cerrar">
+            <svg class="w-5 h-5" stroke="#1A1A1A" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+
+        <!-- Header del Modal -->
+        <div class="max-w-3xl mx-auto px-6 pt-20 pb-10 text-center">
+            <div class="flex items-center justify-center gap-3 mb-6">
+                <div class="divider"></div>
+                <span class="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Experiencia Interactiva</span>
+                <div class="divider"></div>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-outfit font-bold text-brand-text leading-tight">
+                Prueba de <span class="text-brand-gold">Fotocromáticos</span>
+            </h2>
+            <p class="mt-4 text-brand-muted text-sm max-w-lg mx-auto leading-relaxed">Desliza hacia abajo para ver cómo los cristales fotocromáticos se oscurecen progresivamente al exponerse a la luz solar, protegiendo tus ojos de forma automática.</p>
+        </div>
+
+        <!-- ===== SIMULADOR FOTOCROMÁTICO ===== -->
+        <div class="photo-scroll-container" style="height:400vh; position:relative;">
+            <div class="sticky top-0 h-screen flex flex-col items-center justify-center px-4">
+                <div class="photo-scene">
+                    <!-- SVG para definir las formas de recorte (clipPath) de los cristales -->
+                    <svg width="0" height="0" style="position:absolute;">
+                        <defs>
+                            <clipPath id="lens-clip" clipPathUnits="objectBoundingBox">
+                                <!-- Cristal izquierdo (Cálculo ajustado hacia arriba) -->
+                                <path d="M 0.250 0.330 L 0.300 0.335 L 0.350 0.345 L 0.380 0.365 L 0.400 0.395 L 0.420 0.425 L 0.430 0.465 L 0.440 0.515 L 0.440 0.565 L 0.430 0.655 L 0.400 0.725 L 0.350 0.775 L 0.300 0.800 L 0.250 0.805 L 0.200 0.800 L 0.150 0.775 L 0.100 0.725 L 0.070 0.655 L 0.055 0.565 L 0.055 0.515 L 0.060 0.465 L 0.080 0.425 L 0.100 0.395 L 0.120 0.365 L 0.150 0.345 L 0.200 0.335 Z" />
+                                <!-- Cristal derecho (Cálculo ajustado hacia arriba) -->
+                                <path d="M 0.750 0.330 L 0.800 0.335 L 0.850 0.345 L 0.880 0.365 L 0.900 0.395 L 0.920 0.425 L 0.940 0.465 L 0.945 0.515 L 0.945 0.565 L 0.930 0.655 L 0.900 0.725 L 0.850 0.775 L 0.800 0.800 L 0.750 0.805 L 0.700 0.800 L 0.650 0.775 L 0.600 0.725 L 0.570 0.655 L 0.560 0.565 L 0.560 0.515 L 0.570 0.465 L 0.580 0.425 L 0.600 0.395 L 0.620 0.365 L 0.650 0.345 L 0.700 0.335 Z" />
+                            </clipPath>
+                        </defs>
+                    </svg>
+                    <!-- Foto base del sunset con lentes -->
+                    <img src="assets/lens-sunset-1.jpg" alt="Lentes con atardecer" />
+                    <!-- Capa de oscurecimiento RECORTADA únicamente a la forma de los cristales -->
+                    <div id="lens-tint" class="lens-tint-overlay" style="clip-path:url(#lens-clip);"></div>
+                    <!-- Label flotante -->
+                    <div class="photo-label" id="photo-label">Cristal Transparente</div>
+                    <!-- Barra de progreso -->
+                    <div class="photo-progress-bar">
+                        <div class="photo-progress-fill" id="photo-progress"></div>
+                    </div>
+                </div>
+                <p class="mt-6 text-brand-muted text-xs font-outfit tracking-wider uppercase text-center">↓ Desliza para activar el efecto fotocromático</p>
+            </div>
+        </div>
+
+        <!-- Footer del modal -->
+        <div class="py-20 text-center">
+            <p class="font-outfit text-brand-muted text-sm mb-6">¿Listo para proteger tu visión?</p>
+            <button class="btn-primary" onclick="document.getElementById('close-filter-modal').click()">
+                Volver a la Página
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+            </button>
+        </div>
+    </div>
 
 
     <!-- ===========================================================
@@ -941,6 +1134,76 @@
                 if (t) gsap.to(window, { duration:1.2, scrollTo:{y:t,offsetY:70}, ease:'power2.inOut' });
             });
         });
+
+
+        // ============================================================
+        // MODAL — PRUEBA DE FOTOCROMÁTICOS
+        // ============================================================
+        const filterModal = document.getElementById('filter-modal');
+        const openBtn = document.getElementById('open-filter-modal');
+        const closeBtn = document.getElementById('close-filter-modal');
+        let modalST = null;
+
+        function openFilterModal() {
+            filterModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            gsap.fromTo(filterModal, 
+                { opacity: 0, scale: 0.95 }, 
+                { opacity: 1, scale: 1, duration: 0.5, ease: 'power3.out' }
+            );
+            setTimeout(initPhotoScrollTrigger, 150);
+        }
+
+        function closeFilterModal() {
+            gsap.to(filterModal, {
+                opacity: 0, scale: 0.96, duration: 0.35, ease: 'power2.in',
+                onComplete: () => {
+                    filterModal.classList.remove('active');
+                    document.body.style.overflow = '';
+                    filterModal.scrollTop = 0;
+                    if (modalST) { modalST.kill(); modalST = null; }
+                    const tint = document.getElementById('lens-tint');
+                    const progress = document.getElementById('photo-progress');
+                    const label = document.getElementById('photo-label');
+                    if (tint) tint.style.opacity = 0;
+                    if (progress) progress.style.width = '0%';
+                    if (label) label.textContent = 'Cristal Transparente';
+                }
+            });
+        }
+
+        openBtn.addEventListener('click', openFilterModal);
+        closeBtn.addEventListener('click', closeFilterModal);
+
+        function initPhotoScrollTrigger() {
+            const container = filterModal.querySelector('.photo-scroll-container');
+            const tint = document.getElementById('lens-tint');
+            const progressBar = document.getElementById('photo-progress');
+            const label = document.getElementById('photo-label');
+
+            const tl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: container,
+                    scroller: filterModal,
+                    start: 'top top',
+                    end: 'bottom bottom',
+                    scrub: 1,
+                    onUpdate: (self) => {
+                        const p = self.progress;
+                        if (progressBar) progressBar.style.width = (p * 100) + '%';
+                        if (label) {
+                            if (p < 0.05) label.textContent = 'Cristal Transparente';
+                            else if (p < 0.35) label.textContent = 'Activando Fotocromático…';
+                            else if (p < 0.7) label.textContent = 'Protección Media';
+                            else label.textContent = 'Protección Total';
+                        }
+                    }
+                }
+            });
+
+            modalST = tl.scrollTrigger;
+            tl.to(tint, { opacity: 1, duration: 1, ease: 'power1.in' }, 0);
+        }
     </script>
 
 </body>
