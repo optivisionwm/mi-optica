@@ -633,9 +633,9 @@
                         <strong class="text-brand-text font-medium">Oftalmológicos</strong> para eliminar las barreras de tiempo 
                         y traslado que suelen impedir a los colaboradores acceder a una atención Óptica de calidad.
                     </p>
-                    <a href="mailto:optivisionwm@gmail.com?subject=INFORMACIÓN%20SOBRE%20OPERATIVOS%20A%20EMPRESAS" class="btn-primary mt-6 inline-flex text-sm">
-                        Solicitar Operativo
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    <a href="#" onclick="handleMailClick(event)" class="btn-primary mt-6 inline-flex text-sm transition-all duration-300">
+                        <span id="mail-btn-text">Solicitar Operativo</span>
+                        <svg id="mail-btn-icon" class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                     </a>
                 </div>
             </div>
@@ -1260,6 +1260,37 @@
                     }
                 });
                 tl2.to(tint2, { opacity: 1, duration: 1, ease: 'power1.inOut' }, 0);
+            }
+        }
+
+        // ============================================================
+        // MANEJO DEL BOTÓN DE SOLICITAR OPERATIVO
+        // ============================================================
+        function handleMailClick(e) {
+            e.preventDefault(); // Evita el salto arriba
+            
+            const email = 'optivisionwm@gmail.com';
+            const subject = 'INFORMACIÓN SOBRE OPERATIVOS A EMPRESAS';
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                // Celular: mailto funciona perfecto
+                window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
+            } else {
+                // Escritorio: Copiar correo al portapapeles
+                navigator.clipboard.writeText(email).catch(() => {});
+                
+                // Redirigir directamente a la web de Gmail Composer (la más estándar y sin fallos en PC)
+                const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${encodeURIComponent(subject)}`;
+                window.open(gmailUrl, '_blank');
+                
+                // Feedback visual de copiado
+                const textEl = document.getElementById('mail-btn-text');
+                const originalText = textEl.innerText;
+                textEl.innerText = '¡Redirigiendo a Gmail (Correo copiado)!';
+                setTimeout(() => {
+                    textEl.innerText = originalText;
+                }, 3500);
             }
         }
     </script>
