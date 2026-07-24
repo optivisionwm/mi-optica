@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
 import WaveTitle from './components/WaveTitle';
+import AnimatedLogo from './components/AnimatedLogo';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -406,9 +407,9 @@ export default function App() {
 
     {/* ===== LOGO PRINCIPAL (position: fixed, se anima de centro a nav) ===== */}
     {/*
-        🖼️ LOGO — Ahora usa el logo real subido por el usuario en assets/logo-nav.png
+        🖼️ LOGO — Reemplaza "logo-user.png" con tu logo (fondo transparente PNG).
     */}
-    <img id="hero-logo" src="assets/logo-nav.png" alt="Optivision W&M" className="pointer-events-none" />
+    <AnimatedLogo id="hero-logo" src="assets/logo-user.png" alt="Optivision W&M" type="hero" />
 
     {/* ===== NAV (nuevo logo fijo a la izquierda) ===== */}
     <nav id="main-nav" style={{"opacity":"0"}}>
@@ -421,7 +422,7 @@ export default function App() {
             className="cursor-pointer transition-all duration-300 hover:scale-110 active:scale-95 block"
             aria-label="Volver al inicio"
         >
-            <img id="nav-logo" src="assets/logo-nav.png" alt="Optivision W&M" className="h-20 md:h-24 lg:h-28 object-contain" />
+            <AnimatedLogo id="nav-logo" src="assets/logo-nav.png" alt="Optivision W&M" className="h-20 md:h-24 lg:h-28" />
         </a>
         <div className="flex-1"></div>
         <div className="hidden md:flex items-center gap-10 font-outfit">
