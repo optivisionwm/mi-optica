@@ -108,25 +108,25 @@ export default function InteractiveExperiences({ isOpen, onClose }) {
         <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
 
-      {/* HEADER FOTOCROMATICO */}
-      <div className="max-w-3xl mx-auto px-6 pt-20 pb-10 text-center">
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="divider"></div>
-          <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Experiencia Interactiva 1</span>
-          <div className="divider"></div>
-        </div>
-        <h2 className="text-3xl md:text-4xl font-outfit font-bold text-brand-text leading-tight">
-          Prueba de <span className="text-brand-gold">Fotocromáticos</span>
-        </h2>
-        <p className="mt-4 text-brand-muted text-sm max-w-lg mx-auto leading-relaxed">
-          Desliza hacia abajo para ver cómo los cristales fotocromáticos se oscurecen progresivamente al exponerse a la luz solar, protegiendo tus ojos de forma automática.
-        </p>
-      </div>
-
-      {/* SCROLL FOTOCROMATICO */}
+      {/* SCROLL FOTOCROMATICO (SLIDE 1) */}
       <div ref={photoContainerRef} className="h-[400vh] relative">
-        <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-4">
-          <div className="photo-scene">
+        <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-4 pt-10">
+          
+          <div className="max-w-3xl mx-auto px-4 mb-6 text-center">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <div className="divider"></div>
+              <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Experiencia Interactiva 1</span>
+              <div className="divider"></div>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-outfit font-bold text-brand-text leading-tight mb-2">
+              Prueba de <span className="text-brand-gold">Fotocromáticos</span>
+            </h2>
+            <p className="text-brand-muted text-sm max-w-lg mx-auto leading-relaxed hidden md:block">
+              Desliza hacia abajo para ver cómo los cristales fotocromáticos se oscurecen al exponerse a la luz solar.
+            </p>
+          </div>
+
+          <div className="photo-scene border border-brand-gold/20 shadow-2xl">
             <img src="/assets/filtros_1.jpg" alt="Transparente" />
             <img src="/assets/filtros_2.jpg" className="capa-fotocromatica absolute top-0 left-0 w-full h-full opacity-0" alt="Oscuro" />
             <div className="photo-label" id="photo-label-1">Cristal Transparente</div>
@@ -134,28 +134,28 @@ export default function InteractiveExperiences({ isOpen, onClose }) {
               <div className="photo-progress-fill" id="photo-progress-1"></div>
             </div>
           </div>
-          <p className="mt-6 text-brand-muted text-xs font-outfit tracking-wider uppercase text-center">↓ Desliza para activar</p>
+          <p className="mt-4 text-brand-muted text-xs font-outfit tracking-wider uppercase text-center">↓ Desliza para activar efecto</p>
         </div>
       </div>
 
-      {/* HEADER POLARIZADO */}
-      <div className="max-w-3xl mx-auto px-6 pt-32 pb-10 text-center border-t border-brand-gold/20 relative z-10">
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="divider"></div>
-          <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Experiencia Interactiva 2</span>
-          <div className="divider"></div>
-        </div>
-        <h2 className="text-3xl md:text-4xl font-outfit font-bold text-brand-text leading-tight">
-          Lentes <span className="text-brand-gold">Polarizados</span>
-        </h2>
-        <p className="mt-4 text-brand-muted text-sm max-w-lg mx-auto leading-relaxed">
-          Descubre cómo el filtro polarizado elimina instantáneamente los reflejos cegadores del sol sobre el campo, mejorando drásticamente el contraste, los colores y la claridad visual.
-        </p>
-      </div>
+      {/* SCROLL POLARIZADO (SLIDE 2) */}
+      <div ref={polarContainerRef} className="h-[400vh] relative border-t border-brand-gold/10">
+        <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-4 pt-10">
+          
+          <div className="max-w-3xl mx-auto px-4 mb-6 text-center">
+            <div className="flex items-center justify-center gap-3 mb-3">
+              <div className="divider"></div>
+              <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Experiencia Interactiva 2</span>
+              <div className="divider"></div>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-outfit font-bold text-brand-text leading-tight mb-2">
+              Lentes <span className="text-brand-gold">Polarizados</span>
+            </h2>
+            <p className="text-brand-muted text-sm max-w-lg mx-auto leading-relaxed hidden md:block">
+              Descubre cómo el filtro polarizado elimina los reflejos cegadores, mejorando el contraste y color.
+            </p>
+          </div>
 
-      {/* SCROLL POLARIZADO */}
-      <div ref={polarContainerRef} className="h-[400vh] relative">
-        <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-4">
           <div className="photo-scene border border-brand-gold/20 shadow-2xl">
             <img src="/assets/polarizado_1.jpg" alt="Normal" />
             <img src="/assets/polarizado_2.jpg" className="capa-polarizada absolute top-0 left-0 w-full h-full opacity-0 object-contain" alt="Polarizada" />
@@ -164,13 +164,13 @@ export default function InteractiveExperiences({ isOpen, onClose }) {
               <div className="photo-progress-fill" id="photo-progress-2"></div>
             </div>
           </div>
-          <p className="mt-6 text-brand-muted text-xs font-outfit tracking-wider uppercase text-center">↓ Desliza para activar</p>
+          <p className="mt-4 text-brand-muted text-xs font-outfit tracking-wider uppercase text-center">↓ Desliza para activar efecto</p>
         </div>
       </div>
 
-      <div className="py-32 text-center relative z-10 border-t border-brand-gold/20">
+      <div className="py-20 text-center relative z-10 border-t border-brand-gold/20">
         <button onClick={handleClose} className="btn-primary">
-          Volver a la página
+          Finalizar y Volver
         </button>
       </div>
     </div>
