@@ -622,67 +622,62 @@ export default function App() {
     {/* ===========================================================
          MODAL — PRUEBA DE FOTOCROMÁTICOS
          =========================================================== */}
-    <div id="filter-modal">
+    <div id="filter-modal" className="fixed inset-0 bg-brand-bg z-[100] hidden overflow-y-auto">
         {/* Botón Cerrar */}
         <button className="filter-modal-close" id="close-filter-modal" aria-label="Cerrar">
             <svg className="w-5 h-5" stroke="#1A1A1A" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
 
-        {/* Header del Modal */}
-        <div className="max-w-3xl mx-auto px-6 pt-20 pb-10 text-center">
-            <div className="flex items-center justify-center gap-3 mb-6">
-                <div className="divider"></div>
-                <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Experiencia Interactiva</span>
-                <div className="divider"></div>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-outfit font-bold text-brand-text leading-tight">
-                <WaveTitle text="Prueba de " /><WaveTitle text="Fotocromáticos" className="text-brand-gold" />
-            </h2>
-            <p className="mt-4 text-brand-muted text-sm max-w-lg mx-auto leading-relaxed">Desliza hacia abajo para ver cómo los cristales fotocromáticos se oscurecen progresivamente al exponerse a la luz solar, protegiendo tus ojos de forma automática.</p>
-        </div>
-
-        {/* ===== SIMULADOR FOTOCROMÁTICO ===== */}
+        {/* ===== SIMULADOR FOTOCROMÁTICO (SLIDE 1) ===== */}
         <div className="photo-scroll-container" style={{"height":"400vh","position":"relative"}}>
-            <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-4">
-                <div className="photo-scene">
-                    {/* Imagen Base (Cristal Claro) */}
+            <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-4 pt-10">
+                <div className="max-w-3xl mx-auto px-6 mb-6 text-center">
+                    <div className="flex items-center justify-center gap-3 mb-3">
+                        <div className="divider"></div>
+                        <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Experiencia 1</span>
+                        <div className="divider"></div>
+                    </div>
+                    <h2 className="text-3xl md:text-4xl font-outfit font-bold text-brand-text leading-tight mb-2">
+                        <WaveTitle text="Prueba de " /><WaveTitle text="Fotocromáticos" className="text-brand-gold" />
+                    </h2>
+                    <p className="mt-2 text-brand-muted text-sm max-w-lg mx-auto leading-relaxed hidden md:block">
+                        Desliza hacia abajo para ver cómo los cristales se oscurecen al exponerse a la luz solar.
+                    </p>
+                </div>
+                
+                <div className="photo-scene border border-brand-gold/20 shadow-2xl rounded-2xl overflow-hidden">
                     <img src="assets/filtros_1.jpg" alt="Lentes Transparentes"  />
-                    {/* Imagen Destino (Cristal Oscuro Fotocromático), posicionada exactamente encima */}
                     <img src="assets/filtros_2.jpg" id="lens-tint" className="capa-fotocromatica" alt="Lentes Oscuros" style={{"position":"absolute","top":"0","left":"0","width":"100%","height":"100%","opacity":"0"}}  />
-                    {/* Label flotante */}
                     <div className="photo-label" id="photo-label">Cristal Transparente</div>
-                    {/* Barra de progreso */}
                     <div className="photo-progress-bar">
                         <div className="photo-progress-fill" id="photo-progress"></div>
                     </div>
                 </div>
-                <p className="mt-6 text-brand-muted text-xs font-outfit tracking-wider uppercase text-center">↓ Desliza para activar el efecto fotocromático</p>
+                <p className="mt-6 text-brand-muted text-xs font-outfit tracking-wider uppercase text-center">↓ Desliza para activar el efecto</p>
             </div>
         </div>
 
-        {/* ===========================================================
-             SECCIÓN MODAL — PRUEBA DE POLARIZADOS
-             =========================================================== */}
-        <div className="max-w-3xl mx-auto px-6 pt-32 pb-10 text-center border-t border-gray-100 relative z-10 bg-white">
-            <h2 className="text-3xl md:text-4xl font-outfit font-bold text-brand-text leading-tight">
-                <WaveTitle text="Lentes " /><WaveTitle text="Polarizados" className="text-brand-gold" />
-            </h2>
-            <p className="mt-4 text-brand-muted text-sm max-w-lg mx-auto leading-relaxed">
-                Desliza hacia abajo para descubrir cómo el filtro polarizado elimina instantáneamente los reflejos cegadores del sol sobre el campo, mejorando drásticamente el contraste, los colores y la claridad visual.
-            </p>
-        </div>
+        {/* ===== SIMULADOR POLARIZADO (SLIDE 2) ===== */}
+        <div className="photo-scroll-container-2 border-t border-brand-gold/10" style={{"height":"400vh","position":"relative"}}>
+            <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-4 pt-10">
+                <div className="max-w-3xl mx-auto px-6 mb-6 text-center">
+                    <div className="flex items-center justify-center gap-3 mb-3">
+                        <div className="divider"></div>
+                        <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Experiencia 2</span>
+                        <div className="divider"></div>
+                    </div>
+                    <h2 className="text-3xl md:text-4xl font-outfit font-bold text-brand-text leading-tight mb-2">
+                        <WaveTitle text="Lentes " /><WaveTitle text="Polarizados" className="text-brand-gold" />
+                    </h2>
+                    <p className="mt-2 text-brand-muted text-sm max-w-lg mx-auto leading-relaxed hidden md:block">
+                        Descubre cómo el filtro polarizado elimina los reflejos cegadores, mejorando el contraste.
+                    </p>
+                </div>
 
-        {/* ===== SIMULADOR POLARIZADO ===== */}
-        <div className="photo-scroll-container-2" style={{"height":"400vh","position":"relative","backgroundColor":"#fff"}}>
-            <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-4 bg-white">
-                <div className="photo-scene shadow-2xl rounded-2xl overflow-hidden border border-gray-100">
-                    {/* Imagen Base (Visión normal con reflejos) */}
+                <div className="photo-scene border border-brand-gold/20 shadow-2xl rounded-2xl overflow-hidden">
                     <img src="assets/polarizado_1.jpg" alt="Visión Normal con Reflejos"  />
-                    {/* Imagen Destino (Visión polarizada sin reflejos) */}
                     <img src="assets/polarizado_2.jpg" id="lens-tint-2" className="capa-polarizada" alt="Visión Polarizada" style={{"position":"absolute","top":"0","left":"0","width":"100%","height":"100%","objectFit":"contain","opacity":"0"}}  />
-                    {/* Label flotante */}
                     <div className="photo-label" id="photo-label-2">Visión Normal (Con Reflejo)</div>
-                    {/* Barra de progreso */}
                     <div className="photo-progress-bar">
                         <div className="photo-progress-fill" id="photo-progress-2"></div>
                     </div>
@@ -691,11 +686,10 @@ export default function App() {
             </div>
         </div>
 
-
         {/* Footer del modal */}
-        <div className="py-20 text-center">
+        <div className="py-20 text-center relative z-10 border-t border-brand-gold/20">
             <p className="font-outfit text-brand-muted text-sm mb-6">¿Listo para proteger tu visión?</p>
-            <button className="btn-primary" onClick={() => {}}>
+            <button className="btn-primary" onClick={() => document.getElementById('close-filter-modal').click()}>
                 Volver a la Página
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="2" d="M5 15l7-7 7 7"/></svg>
             </button>
