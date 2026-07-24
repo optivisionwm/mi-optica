@@ -146,7 +146,11 @@ export default function AnimatedLogo({ src, className = '', id, alt, type = 'nav
     }, [src, type]);
 
     if (!logoData) {
-        return <img id={id} src={src} className={className} alt={alt} />;
+        return (
+            <div id={id} className={`relative inline-block animated-logo-container group ${className}`}>
+                <img src={src} className="w-full h-full object-contain" alt={alt} />
+            </div>
+        );
     }
 
     return (
