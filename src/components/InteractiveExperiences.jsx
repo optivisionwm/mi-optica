@@ -99,7 +99,7 @@ export default function InteractiveExperiences({ isOpen, onClose }) {
   return (
     <div 
       ref={modalRef}
-      className="fixed inset-0 bg-white z-[100] overflow-y-auto"
+      className="fixed inset-0 bg-brand-bg z-[100] overflow-y-auto"
     >
       <button 
         onClick={handleClose} 
@@ -139,7 +139,7 @@ export default function InteractiveExperiences({ isOpen, onClose }) {
       </div>
 
       {/* HEADER POLARIZADO */}
-      <div className="max-w-3xl mx-auto px-6 pt-32 pb-10 text-center border-t border-gray-100 bg-white relative z-10">
+      <div className="max-w-3xl mx-auto px-6 pt-32 pb-10 text-center border-t border-brand-gold/20 relative z-10">
         <div className="flex items-center justify-center gap-3 mb-6">
           <div className="divider"></div>
           <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Experiencia Interactiva 2</span>
@@ -154,9 +154,9 @@ export default function InteractiveExperiences({ isOpen, onClose }) {
       </div>
 
       {/* SCROLL POLARIZADO */}
-      <div ref={polarContainerRef} className="h-[400vh] relative bg-white">
-        <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-4 bg-white">
-          <div className="photo-scene border border-gray-100 shadow-2xl">
+      <div ref={polarContainerRef} className="h-[400vh] relative">
+        <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-4">
+          <div className="photo-scene border border-brand-gold/20 shadow-2xl">
             <img src="/assets/polarizado_1.jpg" alt="Normal" />
             <img src="/assets/polarizado_2.jpg" className="capa-polarizada absolute top-0 left-0 w-full h-full opacity-0 object-contain" alt="Polarizada" />
             <div className="photo-label" id="photo-label-2">Visión Normal</div>
@@ -168,7 +168,7 @@ export default function InteractiveExperiences({ isOpen, onClose }) {
         </div>
       </div>
 
-      <div className="py-32 text-center bg-white relative z-10 border-t border-gray-100">
+      <div className="py-32 text-center relative z-10 border-t border-brand-gold/20">
         <button onClick={handleClose} className="btn-primary">
           Volver a la página
         </button>
