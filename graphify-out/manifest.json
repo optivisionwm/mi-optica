@@ -15,9 +15,9 @@
     "semantic_hash": "c1ee9ce6a4fe04105dbf8e619390df5e"
   },
   "src/App.jsx": {
-    "mtime": 1786828313.9052017,
-    "ast_hash": "c23af500b4227ba9d040dad6ec42ed29",
-    "semantic_hash": "c23af500b4227ba9d040dad6ec42ed29"
+    "mtime": 1786830485.6347516,
+    "ast_hash": "c5ffa789110800de2117d78b4bcf4896",
+    "semantic_hash": "c5ffa789110800de2117d78b4bcf4896"
   },
   "src/components/AnimatedLogo.jsx": {
     "mtime": 1784917313.5877755,
@@ -80,9 +80,9 @@
     "semantic_hash": "ec37c72108f82d8518cf7e083b9223aa"
   },
   "vite.config.js": {
-    "mtime": 1786815070.0052142,
-    "ast_hash": "16901af0a0b8fbc70ee2ea67a8600d27",
-    "semantic_hash": "16901af0a0b8fbc70ee2ea67a8600d27"
+    "mtime": 1786829517.007551,
+    "ast_hash": "83fd65f93c8f4668acec222c8fe1d29f",
+    "semantic_hash": "83fd65f93c8f4668acec222c8fe1d29f"
   },
   "public/assets/glasses-video.mov": {
     "mtime": 1781456535.0,
@@ -405,9 +405,9 @@
     "semantic_hash": "a4fe834541233e7dda848387d091397d"
   },
   "src/logo3d-preview/main.jsx": {
-    "mtime": 1786815444.9640164,
-    "ast_hash": "ec1e6d8434977a97bc703e2112e39d51",
-    "semantic_hash": "ec1e6d8434977a97bc703e2112e39d51"
+    "mtime": 1786829541.5689735,
+    "ast_hash": "b5844a17070c26025c8eadaffe6b326e",
+    "semantic_hash": "b5844a17070c26025c8eadaffe6b326e"
   },
   "logo-3d-preview.html": {
     "mtime": 1786815340.6053133,
@@ -450,9 +450,9 @@
     "semantic_hash": "dd9027d936cf0453c2fb2b2df6d7976b"
   },
   "src/components/HeroLogo3D.jsx": {
-    "mtime": 1786819102.2367046,
-    "ast_hash": "5763cc382afa6a4b916665a51f33e927",
-    "semantic_hash": "5763cc382afa6a4b916665a51f33e927"
+    "mtime": 1786830490.184051,
+    "ast_hash": "96c49c27251dd7d2d42d07dcfd9b0921",
+    "semantic_hash": "96c49c27251dd7d2d42d07dcfd9b0921"
   },
   "public/assets/persona-sosteniendo-lentes.jpg": {
     "mtime": 1786814188.739859,
@@ -465,9 +465,9 @@
     "semantic_hash": "c3d970c9a36fed6b25c1e8a35fa157c0"
   },
   "src/components/Sunglasses3D.jsx": {
-    "mtime": 1786824778.0290995,
-    "ast_hash": "7e959580248ec56553802374cea5d206",
-    "semantic_hash": "7e959580248ec56553802374cea5d206"
+    "mtime": 1786829535.248831,
+    "ast_hash": "356b78aad1842a94909d56c5b5e87384",
+    "semantic_hash": "356b78aad1842a94909d56c5b5e87384"
   },
   "scripts/verify_technology.mjs": {
     "mtime": 1786828371.9726386,

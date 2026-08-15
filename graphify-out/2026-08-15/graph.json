@@ -115,7 +115,7 @@
       "label": "App()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L43",
+      "source_location": "L54",
       "_callable": true,
       "_origin": "ast",
       "id": "src_app_app",
@@ -393,9 +393,9 @@
       "source_location": "L30",
       "_callable": true,
       "_origin": "ast",
+      "id": "scripts_verify_technology_inspectviewport",
       "community": 9,
-      "norm_label": "inspectviewport()",
-      "id": "scripts_verify_technology_inspectviewport"
+      "norm_label": "inspectviewport()"
     },
     {
       "label": "setModalProgress()",
@@ -404,9 +404,9 @@
       "source_location": "L20",
       "_callable": true,
       "_origin": "ast",
+      "id": "scripts_verify_technology_setmodalprogress",
       "community": 9,
-      "norm_label": "setmodalprogress()",
-      "id": "scripts_verify_technology_setmodalprogress"
+      "norm_label": "setmodalprogress()"
     },
     {
       "label": "AnimatedLogo.jsx",
@@ -1711,9 +1711,9 @@
       "source_file": "scripts/verify_technology.mjs",
       "source_location": "L1",
       "_origin": "ast",
+      "id": "scripts_verify_technology",
       "community": 9,
-      "norm_label": "verify_technology.mjs",
-      "id": "scripts_verify_technology"
+      "norm_label": "verify_technology.mjs"
     },
     {
       "label": "experiences",
@@ -1721,9 +1721,9 @@
       "source_file": "scripts/verify_technology.mjs",
       "source_location": "L13",
       "_origin": "ast",
+      "id": "scripts_verify_technology_experiences",
       "community": 9,
-      "norm_label": "experiences",
-      "id": "scripts_verify_technology_experiences"
+      "norm_label": "experiences"
     },
     {
       "label": "outputDirectory",
@@ -1731,9 +1731,9 @@
       "source_file": "scripts/verify_technology.mjs",
       "source_location": "L10",
       "_origin": "ast",
+      "id": "scripts_verify_technology_outputdirectory",
       "community": 9,
-      "norm_label": "outputdirectory",
-      "id": "scripts_verify_technology_outputdirectory"
+      "norm_label": "outputdirectory"
     },
     {
       "label": "repositoryRoot",
@@ -1741,9 +1741,9 @@
       "source_file": "scripts/verify_technology.mjs",
       "source_location": "L9",
       "_origin": "ast",
+      "id": "scripts_verify_technology_repositoryroot",
       "community": 9,
-      "norm_label": "repositoryroot",
-      "id": "scripts_verify_technology_repositoryroot"
+      "norm_label": "repositoryroot"
     },
     {
       "label": "scriptDirectory",
@@ -1751,9 +1751,9 @@
       "source_file": "scripts/verify_technology.mjs",
       "source_location": "L8",
       "_origin": "ast",
+      "id": "scripts_verify_technology_scriptdirectory",
       "community": 9,
-      "norm_label": "scriptdirectory",
-      "id": "scripts_verify_technology_scriptdirectory"
+      "norm_label": "scriptdirectory"
     }
   ],
   "links": [
@@ -1858,12 +1858,12 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/verify_technology.mjs",
-      "source_location": "L92",
+      "source_location": "L110",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "scripts_verify_technology_inspectviewport",
-      "target": "scripts_verify_technology_setmodalprogress"
+      "target": "scripts_verify_technology_setmodalprogress",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -3360,9 +3360,9 @@
       "source_location": "L10",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "scripts_verify_technology",
-      "target": "scripts_verify_technology_outputdirectory"
+      "target": "scripts_verify_technology_outputdirectory",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -3371,9 +3371,9 @@
       "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "scripts_verify_technology",
-      "target": "scripts_verify_technology_experiences"
+      "target": "scripts_verify_technology_experiences",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -3382,9 +3382,9 @@
       "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "scripts_verify_technology",
-      "target": "scripts_verify_technology_setmodalprogress"
+      "target": "scripts_verify_technology_setmodalprogress",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -3393,9 +3393,9 @@
       "source_location": "L30",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "scripts_verify_technology",
-      "target": "scripts_verify_technology_inspectviewport"
+      "target": "scripts_verify_technology_inspectviewport",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -3404,9 +3404,9 @@
       "source_location": "L8",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "scripts_verify_technology",
-      "target": "scripts_verify_technology_scriptdirectory"
+      "target": "scripts_verify_technology_scriptdirectory",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -3415,9 +3415,9 @@
       "source_location": "L9",
       "weight": 1.0,
       "_origin": "ast",
-      "confidence_score": 1.0,
       "source": "scripts_verify_technology",
-      "target": "scripts_verify_technology_repositoryroot"
+      "target": "scripts_verify_technology_repositoryroot",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -3544,7 +3544,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L43",
+      "source_location": "L54",
       "weight": 1.0,
       "_origin": "ast",
       "source": "src_app",

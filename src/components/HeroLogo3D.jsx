@@ -134,7 +134,7 @@ export default function HeroLogo3D({
 
       if (!reduceMotion && spinStarted) {
         spinTime += delta;
-        spinRoot.rotation.y = Math.sin(spinTime * 0.24) * 0.42;
+        spinRoot.rotation.y = Math.sin(spinTime * 0.28) * 0.42;
       }
 
       lightX = THREE.MathUtils.damp(lightX, pointer.active ? pointer.x * 4 : 0, 7, delta);

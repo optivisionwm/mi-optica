@@ -4,6 +4,7 @@
       "ref_react",
       "src_app",
       "src_app_app",
+      "src_app_asseturl",
       "src_app_hero_brands",
       "src_app_herologo3d",
       "src_app_lens_types",
@@ -206,7 +207,7 @@
     ]
   },
   "cohesion": {
-    "0": 0.08505747126436781,
+    "0": 0.08387096774193549,
     "1": 0.08695652173913043,
     "2": 0.15441176470588236,
     "3": 0.125,

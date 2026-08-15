@@ -450,7 +450,7 @@ export default function App() {
             <AnimatedLogo id="nav-logo" src={assetUrl('logo-nav.png')} alt="Optivision W&M" className="h-20 md:h-24 lg:h-28" />
         </a>
         <div className="flex-1"></div>
-        <div className="hidden md:flex items-center gap-10 font-outfit">
+        <div className="hidden md:flex items-center gap-6 xl:gap-10 font-outfit">
             <a
                 href="https://wa.me/56992803368?text=Hola%2C%20quiero%20cotizar%20mi%20receta%20%C3%B3ptica."
                 target="_blank"
@@ -459,6 +459,7 @@ export default function App() {
             >
                 Cotiza aquí ↓
             </a>
+            <a href="#operativos" className="nav-link">Servicio empresas</a>
             <a href="#quienes-somos" className="nav-link">Nosotros</a>
             <a href="#optiland" className="nav-link">Tecnología</a>
             <a href="#mision" className="nav-link">Misión</a>
@@ -481,6 +482,7 @@ export default function App() {
         >
             Cotiza aquí ↓
         </a>
+        <a href="#operativos" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Servicio empresas</a>
         <a href="#quienes-somos" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Nosotros</a>
         <a href="#optiland" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Tecnología</a>
         <a href="#mision" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Misión</a>
@@ -650,11 +652,6 @@ export default function App() {
                         <svg className="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeWidth="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     </div>
                     <h3 className="text-lg font-outfit font-semibold text-brand-text mb-3">Protección Completa</h3>
-                    <div className="filter-card-lens" aria-hidden="true">
-                        <span className="filter-card-lens__glass filter-card-lens__glass--left"></span>
-                        <span className="filter-card-lens__bridge"></span>
-                        <span className="filter-card-lens__glass filter-card-lens__glass--right"></span>
-                    </div>
                     <p className="text-brand-muted text-sm leading-relaxed flex-grow">Comprueba cómo actúan los tratamientos fotocromático, Blue Cut y UV directamente sobre los cristales.</p>
                     <button id="open-filter-modal" className="btn-ver-mas mt-5 w-full justify-center">
                         Explorar filtros
