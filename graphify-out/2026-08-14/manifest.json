@@ -1,0 +1,92 @@
+{
+  ".oxlintrc.json": {
+    "mtime": 1784904869.6947474,
+    "ast_hash": "5e6e3cea3e89137071c142dd7835b0ef",
+    "semantic_hash": "5e6e3cea3e89137071c142dd7835b0ef"
+  },
+  "package.json": {
+    "mtime": 1784905506.7025511,
+    "ast_hash": "28a4c5b057b8242a851780198acbe59c",
+    "semantic_hash": "28a4c5b057b8242a851780198acbe59c"
+  },
+  "postcss.config.js": {
+    "mtime": 1784905515.2191703,
+    "ast_hash": "c1ee9ce6a4fe04105dbf8e619390df5e",
+    "semantic_hash": "c1ee9ce6a4fe04105dbf8e619390df5e"
+  },
+  "src/App.jsx": {
+    "mtime": 1784917250.602567,
+    "ast_hash": "3b34bec69bcb3de00602b5de422580bd",
+    "semantic_hash": "3b34bec69bcb3de00602b5de422580bd"
+  },
+  "src/components/AnimatedLogo.jsx": {
+    "mtime": 1784917313.5877755,
+    "ast_hash": "660814115609dc44b2e42c61c882b409",
+    "semantic_hash": "660814115609dc44b2e42c61c882b409"
+  },
+  "src/components/Footer.jsx": {
+    "mtime": 1784905786.1146786,
+    "ast_hash": "752eca7fcd90167fcdfc86d39252c477",
+    "semantic_hash": "752eca7fcd90167fcdfc86d39252c477"
+  },
+  "src/components/Hero.jsx": {
+    "mtime": 1784905099.5648375,
+    "ast_hash": "1e99243b418c7859919213c8cdbddbee",
+    "semantic_hash": "1e99243b418c7859919213c8cdbddbee"
+  },
+  "src/components/InteractiveExperiences.jsx": {
+    "mtime": 1784914370.985752,
+    "ast_hash": "1185acfdf10ce9172ecb1b82862f8d95",
+    "semantic_hash": "1185acfdf10ce9172ecb1b82862f8d95"
+  },
+  "src/components/Navbar.jsx": {
+    "mtime": 1784905077.546361,
+    "ast_hash": "f4bf8938dfdbdfb73ba02848b3b87eee",
+    "semantic_hash": "f4bf8938dfdbdfb73ba02848b3b87eee"
+  },
+  "src/components/Operativos.jsx": {
+    "mtime": 1784905155.5208247,
+    "ast_hash": "75ad07f8a30a414f655016e162587b03",
+    "semantic_hash": "75ad07f8a30a414f655016e162587b03"
+  },
+  "src/components/Technology.jsx": {
+    "mtime": 1784905111.890919,
+    "ast_hash": "e7e4583dc90ce02fd2a32470142c7468",
+    "semantic_hash": "e7e4583dc90ce02fd2a32470142c7468"
+  },
+  "src/components/WaveTitle.jsx": {
+    "mtime": 1784910927.0400066,
+    "ast_hash": "abdd015905d763720d2aa756629e618c",
+    "semantic_hash": "abdd015905d763720d2aa756629e618c"
+  },
+  "src/components/WhoWeAre.jsx": {
+    "mtime": 1784905142.6297293,
+    "ast_hash": "613ed635b3f63ec1f5bf0ab6677cbc52",
+    "semantic_hash": "613ed635b3f63ec1f5bf0ab6677cbc52"
+  },
+  "src/main.jsx": {
+    "mtime": 1784904869.8347316,
+    "ast_hash": "e13723e2574429d9a6d849727e3ff695",
+    "semantic_hash": "e13723e2574429d9a6d849727e3ff695"
+  },
+  "src/original.jsx": {
+    "mtime": 1784905983.6006627,
+    "ast_hash": "671aa0780f372287301fd8d15c56d400",
+    "semantic_hash": "671aa0780f372287301fd8d15c56d400"
+  },
+  "test-logo.mjs": {
+    "mtime": 1784908353.5482676,
+    "ast_hash": "ec37c72108f82d8518cf7e083b9223aa",
+    "semantic_hash": "ec37c72108f82d8518cf7e083b9223aa"
+  },
+  "vite.config.js": {
+    "mtime": 1784904869.6779406,
+    "ast_hash": "88439104b3c207f17d33ef3160e3b080",
+    "semantic_hash": "88439104b3c207f17d33ef3160e3b080"
+  },
+  "public/assets/glasses-video.mov": {
+    "mtime": 1781456535.0,
+    "ast_hash": "86aee0ffceedfbc3e190ee0ca34a72e6",
+    "semantic_hash": "86aee0ffceedfbc3e190ee0ca34a72e6"
+  }
+}

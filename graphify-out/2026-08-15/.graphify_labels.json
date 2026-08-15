@@ -1,0 +1,18 @@
+{
+  "0": "dependencies",
+  "1": "scripts",
+  "2": ".oxlintrc.json",
+  "3": "export_logo_3d.mjs",
+  "4": "react",
+  "5": "devDependencies",
+  "6": "React + Vite",
+  "7": "manifest.json",
+  "8": "vectorize_logo.py",
+  "9": "verify_logo_3d.mjs",
+  "10": "logo3d-preview/main.jsx",
+  "11": "verify_hero.mjs",
+  "18": "postcss.config.js",
+  "19": "original.jsx",
+  "20": "test-logo.mjs",
+  "21": "vite.config.js"
+}

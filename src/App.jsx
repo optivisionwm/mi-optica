@@ -1,16 +1,63 @@
-import React, { useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
+import { ArrowUpRight, ChevronDown } from 'lucide-react';
 import WaveTitle from './components/WaveTitle';
 import AnimatedLogo from './components/AnimatedLogo';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
+const HeroLogo3D = lazy(() => import('./components/HeroLogo3D'));
+const Sunglasses3D = lazy(() => import('./components/Sunglasses3D'));
+const assetUrl = (path) => `${import.meta.env.BASE_URL}assets/${path}`;
+
+const HERO_BRANDS = [
+    { name: 'Ray-Ban', src: assetUrl('brand-rayban.png') },
+    { name: 'Veltom', src: assetUrl('brand-veltom.png') },
+    { name: 'Karün', src: assetUrl('brand-karun.png') },
+    { name: 'Vogue', src: assetUrl('brand-vogue.png') },
+    { name: 'Saturday', src: assetUrl('brand-saturday.png') },
+    { name: 'Hoya', src: assetUrl('brand-hoya.svg') },
+    { name: 'Optiland', src: assetUrl('brand-optiland.png') },
+];
+
+const LENS_TYPES = [
+    {
+        name: 'Monofocales',
+        description: 'Una sola graduación para corregir la visión de lejos o de cerca, con diseños que pueden personalizarse según la posición de uso.',
+    },
+    {
+        name: 'Bifocales',
+        description: 'Dos zonas de visión en un mismo cristal: lejos y cerca. Los diseños Bisoft combinan adaptación y tallado Freeform.',
+    },
+    {
+        name: 'Multifocales',
+        description: 'Visión lejana, intermedia y cercana en una sola lente, con campos optimizados para una adaptación cómoda.',
+    },
+    {
+        name: 'Ocupacionales',
+        description: 'Diseñados para tareas de oficina, priorizan las distancias intermedias y cercanas según la actividad.',
+    },
+];
+
+const OPERATIVOS_GMAIL_URL = `https://mail.google.com/mail/?view=cm&fs=1&to=optivisionwm@gmail.com&su=${encodeURIComponent('SOLICITUD DE INFORMACIÓN: OPERATIVO OFTALMOLÓGICO')}&body=${encodeURIComponent(`Hola Optivision W&M:
+
+Quisiera solicitar información sobre un operativo oftalmológico para nuestra empresa.
+
+Empresa:
+Cantidad aproximada de colaboradores:
+Comuna:
+Fecha tentativa:
+
+Quedo atento/a. Gracias.`)}`;
+
 export default function App() {
+  const [heroLogoReady, setHeroLogoReady] = useState(false);
+
   useEffect(() => { 
     // Wait a tick for DOM to be ready
-    setTimeout(() => {
+    const setupTimer = setTimeout(() => {
         try {
             
         gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
@@ -55,8 +102,10 @@ export default function App() {
             // La animación de entrada del logo se elimina porque entraba en conflicto con el ScrollTrigger al recargar (F5)
             // El preloader ya cumple la función de revelar la pantalla con suavidad.
             gsap.timeline({ delay: 1.1 })
-                .to('#hero-tagline', { opacity:1, duration:1, ease:'power2.out' })
-                .to('#main-nav', { opacity:1, duration:.8, ease:'power2.out' }, '-=.6');
+                .fromTo('#hero-logo-shell', { opacity:0, y:10 }, { opacity:1, y:0, duration:.8, ease:'power3.out' })
+                .fromTo('#brand-carousel', { opacity:0, y:8 }, { opacity:1, y:0, duration:.55, ease:'power2.out' }, '-=.55')
+                .fromTo('#hero-scroll-hint', { opacity:0 }, { opacity:1, duration:.55, ease:'power2.out' }, '-=.35')
+                .to('#main-nav', { opacity:1, duration:.7, ease:'power2.out' }, '-=.45');
         };
 
         if (document.readyState === 'complete') {
@@ -67,103 +116,118 @@ export default function App() {
 
 
         // ============================================================
-        // 1. LOGO SHRINK -> Se va a la esquina y desaparece
-        // El logo de la navbar ya está fijo y visible.
+        // 1. HERO OPTICO: el scroll atraviesa el visor derecho.
         // ============================================================
-        const logoEl = document.getElementById('hero-logo');
+        const heroViewport = document.getElementById('hero-viewport');
+        const heroPhotoStage = document.getElementById('hero-photo-stage');
+        const heroPhoto = document.getElementById('hero-photo-sharp');
+        const lensGeometry = {
+            x: window.innerWidth * 0.7,
+            y: window.innerHeight * 0.64,
+            maxRadius: window.innerWidth
+        };
 
-        const navLogoTop  = 8;
-        const navLogoLeft = 14;
-        const navLogoWidth = 150; // Un poco más grande para coincidir con la transición
+        const updateLensGeometry = () => {
+            if (!heroViewport || !heroPhotoStage || !heroPhoto) return;
 
-        if(logoEl) {
-            gsap.fromTo(logoEl, 
-                {
-                    // ESTADO INICIAL ESTRICTO (Para evitar errores al dar F5)
-                    top: '50%',
-                    left: '50%',
-                    xPercent: -50,
-                    yPercent: -50,
-                    width: '76vw',
-                    opacity: 1
-                },
-                {
-                    // ESTADO FINAL AL HACER SCROLL
-                    scrollTrigger: {
-                        trigger: '#hero',
-                        start: 'top top',
-                        end: () => window.innerHeight * 0.55 + ' top',
-                        scrub: 1.2,
-                        onLeave: () => gsap.set(logoEl, { visibility: 'hidden' }),
-                        onEnterBack: () => gsap.set(logoEl, { visibility: 'visible' })
+            const viewportRect = heroViewport.getBoundingClientRect();
+            const photoRect = heroPhoto.getBoundingClientRect();
+            const naturalWidth = heroPhoto.naturalWidth || 3225;
+            const naturalHeight = heroPhoto.naturalHeight || 2148;
+            const objectPositionX = window.matchMedia('(max-width: 640px)').matches ? 0.7 : 0.5;
+            const renderScale = Math.max(photoRect.width / naturalWidth, photoRect.height / naturalHeight);
+            const renderedWidth = naturalWidth * renderScale;
+            const renderedHeight = naturalHeight * renderScale;
+            const offsetX = (photoRect.width - renderedWidth) * objectPositionX;
+            const offsetY = photoRect.height - renderedHeight;
+
+            lensGeometry.x = photoRect.left - viewportRect.left + offsetX + naturalWidth * 0.703 * renderScale;
+            lensGeometry.y = photoRect.top - viewportRect.top + offsetY + naturalHeight * 0.643 * renderScale;
+            lensGeometry.maxRadius = Math.hypot(
+                Math.max(lensGeometry.x, viewportRect.width - lensGeometry.x),
+                Math.max(lensGeometry.y, viewportRect.height - lensGeometry.y)
+            ) + 80;
+
+            heroViewport.style.setProperty('--lens-x', `${lensGeometry.x}px`);
+            heroViewport.style.setProperty('--lens-y', `${lensGeometry.y}px`);
+            gsap.set(heroPhotoStage, { transformOrigin: `${lensGeometry.x}px ${lensGeometry.y}px` });
+        };
+
+        updateLensGeometry();
+        if (!heroPhoto.complete) {
+            heroPhoto.addEventListener('load', () => {
+                updateLensGeometry();
+                ScrollTrigger.refresh();
+            }, { once: true });
+        }
+
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            const heroScrollDistance = () => window.innerHeight;
+            const heroTimeline = gsap.timeline({
+                scrollTrigger: {
+                    trigger: '#hero',
+                    start: 'top top',
+                    end: () => `+=${heroScrollDistance()}`,
+                    scrub: 0.65,
+                    pin: heroViewport,
+                    pinSpacing: false,
+                    anticipatePin: 1,
+                    invalidateOnRefresh: true,
+                    onRefreshInit: updateLensGeometry,
+                    onUpdate: (self) => {
+                        if (self.progress > .005) return;
+                        gsap.set(['#hero-scroll-hint', '#brand-carousel'], {
+                            opacity: 1,
+                            y: 0,
+                        });
                     },
-                    top: navLogoTop + 'px',
-                    left: navLogoLeft + 'px',
-                    xPercent: 0,
-                    yPercent: 0,
-                    width: navLogoWidth + 'px',
-                    opacity: 0,
-                    ease: 'power2.inOut',
-                    immediateRender: true
                 }
-            );
+            });
+
+            heroTimeline
+                .fromTo('#hero-scroll-hint',
+                    { opacity:1, y:0 },
+                    { opacity:0, y:-14, duration:.14, ease:'power2.out', immediateRender:false },
+                    0
+                )
+                .fromTo('#brand-carousel',
+                    { opacity:1, y:0 },
+                    { opacity:0, y:12, duration:.16, ease:'power2.out', immediateRender:false },
+                    0
+                )
+                .to('#hero-logo-shell', { opacity:0, scale:.78, filter:'blur(5px)', duration:.28, ease:'power2.in' }, .08)
+                .to(heroPhotoStage, { scale:4.2, duration:1, ease:'none' }, 0)
+                .to('#hero-vignette', { opacity:.82, duration:.38, ease:'none' }, 0)
+                .to(heroViewport, {
+                    '--portal-radius': () => `${lensGeometry.maxRadius}px`,
+                    duration:.66,
+                    ease:'power2.inOut'
+                }, .3);
         }
 
 
+        // ============================================================
+        // 2. NAV: cambia de contraste al terminar la transición óptica.
+        // ============================================================
+        const updateNavState = (passedHero) => {
+            const nav = document.getElementById('main-nav');
+            if (!nav) return;
+            if (heroViewport) heroViewport.style.pointerEvents = passedHero ? 'none' : 'auto';
+            nav.classList.toggle('is-over-hero', !passedHero);
+            nav.style.background = passedHero ? 'rgba(250, 248, 244, 0.88)' : 'transparent';
+            nav.style.backdropFilter = passedHero ? 'blur(24px)' : 'none';
+            nav.style.WebkitBackdropFilter = passedHero ? 'blur(24px)' : 'none';
+            nav.style.borderBottom = passedHero ? '1px solid rgba(26, 26, 26, 0.08)' : 'none';
+            nav.style.boxShadow = passedHero ? '0 10px 36px rgba(0, 0, 0, 0.05)' : 'none';
+        };
 
-        // ============================================================
-        // 2. CARRUSEL DE MARCAS: Fade out al hacer scroll
-        // ============================================================
-        gsap.to('#brand-carousel', {
-            scrollTrigger: {
-                trigger: '#hero',
-                start: '8% top',
-                end: '32% top',
-                scrub: 1.2,
-            },
-            opacity: 0,
-            y: -20,
-            ease: 'power2.in',
-        });
-
-        // Tagline desaparece rápidamente al empezar el scroll
-        gsap.fromTo('#hero-tagline', { opacity: 1 }, {
-            scrollTrigger: {
-                trigger: '#hero',
-                start: '5% top',
-                end: '22% top',
-                scrub: 1.2,
-            },
-            opacity: 0,
-            immediateRender: false
-        });
-
-
-        // ============================================================
-        // 3. NAV: Fondo blur aparece cuando el logo llega arriba
-        // ============================================================
-        // ============================================================
-        // 3. NAV: Fondo blur aparece cuando el logo llega arriba
-        // ============================================================
         ScrollTrigger.create({
-            start: () => window.innerHeight * 0.55,
-            onUpdate: (self) => {
-                const nav = document.getElementById('main-nav');
-                if (self.scroll() > window.innerHeight * 0.55) {
-                    // Glassmorphism mucho más marcado y premium
-                    nav.style.background = 'rgba(250, 248, 244, 0.45)';
-                    nav.style.backdropFilter = 'blur(24px)';
-                    nav.style.WebkitBackdropFilter = 'blur(24px)';
-                    nav.style.borderBottom = '1px solid rgba(255, 255, 255, 0.4)';
-                    nav.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.05)';
-                } else {
-                    nav.style.background = 'transparent';
-                    nav.style.backdropFilter = 'none';
-                    nav.style.WebkitBackdropFilter = 'none';
-                    nav.style.borderBottom = 'none';
-                    nav.style.boxShadow = 'none';
-                }
-            }
+            trigger: '#hero',
+            start: 'top top',
+            end: () => `+=${window.innerHeight}`,
+            onUpdate: (self) => updateNavState(self.progress > 0.86),
+            onLeave: () => updateNavState(true),
+            onEnterBack: () => updateNavState(false),
         });
 
 
@@ -192,7 +256,7 @@ export default function App() {
         // ============================================================
 
         // Optiland
-        gsap.fromTo(['#optiland-header', '#opt-card-1', '#opt-card-2', '#opt-card-3', '#opt-types'],
+        gsap.fromTo(['#optiland-header', '#opt-card-2', '#opt-card-3', '#opt-types'],
             { opacity: 0, y: 40 },
             { 
                 opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: 'power2.out',
@@ -246,14 +310,21 @@ export default function App() {
         const filterModal = document.getElementById('filter-modal');
         const openBtn = document.getElementById('open-filter-modal');
         const closeBtn = document.getElementById('close-filter-modal');
-        let modalST = null;
+        let modalScrollTriggers = [];
 
         function openFilterModal() {
+            filterModal.scrollTop = 0;
             filterModal.classList.add('active');
             document.body.style.overflow = 'hidden';
             gsap.fromTo(filterModal, 
                 { opacity: 0, scale: 0.95 }, 
-                { opacity: 1, scale: 1, duration: 0.5, ease: 'power3.out' }
+                {
+                    opacity: 1,
+                    scale: 1,
+                    duration: 0.5,
+                    ease: 'power3.out',
+                    onComplete: () => gsap.set(filterModal, { clearProps: 'transform' }),
+                }
             );
             setTimeout(initPhotoScrollTrigger, 150);
         }
@@ -265,20 +336,15 @@ export default function App() {
                     filterModal.classList.remove('active');
                     document.body.style.overflow = '';
                     filterModal.scrollTop = 0;
-                    if (modalST) { modalST.kill(); modalST = null; }
-                    const tint = document.querySelector('.capa-fotocromatica');
-                    const progress = document.getElementById('photo-progress');
-                    const label = document.getElementById('photo-label');
-                    if (tint) tint.style.opacity = 0;
-                    if (progress) progress.style.width = '0%';
-                    if (label) label.textContent = 'Cristal Transparente';
-                    
-                    const tint2 = document.querySelector('.capa-polarizada');
-                    const progress2 = document.getElementById('photo-progress-2');
-                    const label2 = document.getElementById('photo-label-2');
-                    if (tint2) tint2.style.opacity = 0;
-                    if (progress2) progress2.style.width = '0%';
-                    if (label2) label2.textContent = 'Visión Normal';
+                    modalScrollTriggers.forEach((trigger) => trigger.kill());
+                    modalScrollTriggers = [];
+                    filterModal.querySelectorAll('[data-filter-overlay], [data-filter-rays]').forEach((element) => {
+                        element.style.opacity = '';
+                        element.style.transform = '';
+                    });
+                    filterModal.querySelectorAll('.photo-progress-fill').forEach((element) => {
+                        element.style.width = '0%';
+                    });
                 }
             });
         }
@@ -287,97 +353,62 @@ export default function App() {
         closeBtn.addEventListener('click', closeFilterModal);
 
         function initPhotoScrollTrigger() {
-            // --- 1. Fotocromático ---
-            const container1 = filterModal.querySelector('.photo-scroll-container');
-            const tint1 = filterModal.querySelector('.capa-fotocromatica');
-            const progressBar1 = document.getElementById('photo-progress');
-            const label1 = document.getElementById('photo-label');
+            modalScrollTriggers.forEach((trigger) => trigger.kill());
+            modalScrollTriggers = [];
 
-            if (container1) {
-                const tl1 = gsap.timeline({
+            const experiences = [
+                {
+                    selector: '.photo-scroll-container',
+                    labels: ['Cristal transparente', 'Activando con luz solar', 'Oscurecimiento en curso', 'Filtro fotocromático activo'],
+                },
+                {
+                    selector: '.photo-scroll-container-2',
+                    labels: ['Sin filtro', 'Luz azul detectada', 'Filtro Blue Cut activo', 'Exposición reducida'],
+                },
+                {
+                    selector: '.photo-scroll-container-3',
+                    labels: ['Sin filtro UV', 'Radiación UV detectada', 'Filtro UV activo', 'Protección solar activa'],
+                },
+            ];
+
+            experiences.forEach(({ selector, labels }) => {
+                const container = filterModal.querySelector(selector);
+                if (!container) return;
+                const overlay = container.querySelector('[data-filter-overlay]');
+                const rays = container.querySelector('[data-filter-rays]');
+                const progressBar = container.querySelector('.photo-progress-fill');
+                const label = container.querySelector('.photo-label');
+
+                const timeline = gsap.timeline({
                     scrollTrigger: {
-                        trigger: container1,
+                        trigger: container,
                         scroller: filterModal,
                         start: 'top top',
                         end: 'bottom bottom',
-                        scrub: 1,
+                        scrub: 0.8,
                         onUpdate: (self) => {
                             const p = self.progress;
-                            if (progressBar1) progressBar1.style.width = (p * 100) + '%';
-                            if (label1) {
-                                if (p < 0.05) label1.textContent = 'Cristal Transparente';
-                                else if (p < 0.35) label1.textContent = 'Activando Fotocromático…';
-                                else if (p < 0.7) label1.textContent = 'Protección Media';
-                                else label1.textContent = 'Protección Total';
+                            if (progressBar) progressBar.style.width = `${p * 100}%`;
+                            if (label) {
+                                if (p < 0.12) label.textContent = labels[0];
+                                else if (p < 0.42) label.textContent = labels[1];
+                                else if (p < 0.76) label.textContent = labels[2];
+                                else label.textContent = labels[3];
                             }
                         }
                     }
                 });
-                tl1.to(tint1, { opacity: 1, duration: 1, ease: 'power1.inOut' }, 0);
-                modalST = tl1.scrollTrigger; // guardamos uno por compatibilidad con el close
-            }
+                if (rays) {
+                    timeline
+                        .fromTo(rays, { opacity: 0, xPercent: 12 }, { opacity: 0.9, xPercent: 0, duration: 0.42, ease: 'power1.out' }, 0)
+                        .to(rays, { opacity: 0.12, xPercent: -8, duration: 0.58, ease: 'power1.inOut' }, 0.42);
+                }
+                if (overlay) timeline.to(overlay, { opacity: 1, duration: 0.78, ease: 'power1.inOut' }, 0.2);
+                modalScrollTriggers.push(timeline.scrollTrigger);
+            });
 
-            // --- 2. Polarizado ---
-            const container2 = filterModal.querySelector('.photo-scroll-container-2');
-            const tint2 = filterModal.querySelector('.capa-polarizada');
-            const progressBar2 = document.getElementById('photo-progress-2');
-            const label2 = document.getElementById('photo-label-2');
-
-            if (container2) {
-                const tl2 = gsap.timeline({
-                    scrollTrigger: {
-                        trigger: container2,
-                        scroller: filterModal,
-                        start: 'top top',
-                        end: 'bottom bottom',
-                        scrub: 1,
-                        onUpdate: (self) => {
-                            const p = self.progress;
-                            if (progressBar2) progressBar2.style.width = (p * 100) + '%';
-                            if (label2) {
-                                if (p < 0.05) label2.textContent = 'Visión Normal';
-                                else if (p < 0.35) label2.textContent = 'Activando Polarizado…';
-                                else if (p < 0.7) label2.textContent = 'Bloqueando Reflejos';
-                                else label2.textContent = 'Visión 100% Sin Reflejos';
-                            }
-                        }
-                    }
-                });
-                tl2.to(tint2, { opacity: 1, duration: 1, ease: 'power1.inOut' }, 0);
-            }
+            ScrollTrigger.refresh();
         }
-
-        // ============================================================
-        // MANEJO DEL BOTÓN DE SOLICITAR OPERATIVO
-        // ============================================================
-        function handleMailClick(e) {
-            e.preventDefault(); // Evita el salto arriba
-            
-            const email = 'optivisionwm@gmail.com';
-            const subject = 'INFORMACIÓN SOBRE OPERATIVOS A EMPRESAS';
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
-            if (isMobile) {
-                // Celular: mailto funciona perfecto
-                window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
-            } else {
-                // Escritorio: Copiar correo al portapapeles
-                navigator.clipboard.writeText(email).catch(() => {});
-                
-                // Redirigir directamente a la web de Gmail Composer (la más estándar y sin fallos en PC)
-                const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${encodeURIComponent(subject)}`;
-                window.open(gmailUrl, '_blank');
-                
-                // Feedback visual de copiado
-                const textEl = document.getElementById('mail-btn-text');
-                const originalText = textEl.innerText;
-                textEl.innerText = '¡Redirigiendo a Gmail (Correo copiado)!';
-                setTimeout(() => {
-                    textEl.innerText = originalText;
-                }, 3500);
-            }
-        }
-    
 
         } catch(e) {
             console.error(e);
@@ -392,7 +423,7 @@ export default function App() {
       }
     };
     window.closeMobileMenu = closeMobileMenu;
-    window.handleMailClick = (e) => { e.preventDefault(); };
+    return () => clearTimeout(setupTimer);
   }, []);
 
   return (
@@ -405,14 +436,8 @@ export default function App() {
         <div className="loader-bar"></div>
     </div>
 
-    {/* ===== LOGO PRINCIPAL (position: fixed, se anima de centro a nav) ===== */}
-    {/*
-        🖼️ LOGO — Reemplaza "logo-user.png" con tu logo (fondo transparente PNG).
-    */}
-    <AnimatedLogo id="hero-logo" src="assets/logo-user.png" alt="Optivision W&M" type="hero" />
-
     {/* ===== NAV (nuevo logo fijo a la izquierda) ===== */}
-    <nav id="main-nav" style={{"opacity":"0"}}>
+    <nav id="main-nav" className="is-over-hero" style={{"opacity":"0"}}>
         <a 
             href="#top" 
             onClick={(e) => { 
@@ -422,10 +447,18 @@ export default function App() {
             className="cursor-pointer transition-all duration-300 hover:scale-110 active:scale-95 block"
             aria-label="Volver al inicio"
         >
-            <AnimatedLogo id="nav-logo" src="assets/logo-nav.png" alt="Optivision W&M" className="h-20 md:h-24 lg:h-28" />
+            <AnimatedLogo id="nav-logo" src={assetUrl('logo-nav.png')} alt="Optivision W&M" className="h-20 md:h-24 lg:h-28" />
         </a>
         <div className="flex-1"></div>
         <div className="hidden md:flex items-center gap-10 font-outfit">
+            <a
+                href="https://wa.me/56992803368?text=Hola%2C%20quiero%20cotizar%20mi%20receta%20%C3%B3ptica."
+                target="_blank"
+                rel="noreferrer"
+                className="nav-link"
+            >
+                Cotiza aquí ↓
+            </a>
             <a href="#quienes-somos" className="nav-link">Nosotros</a>
             <a href="#optiland" className="nav-link">Tecnología</a>
             <a href="#mision" className="nav-link">Misión</a>
@@ -440,6 +473,14 @@ export default function App() {
 
     {/* Menú móvil */}
     <div id="mobile-menu" className="fixed inset-0 z-40 bg-brand-cream/95 backdrop-blur-lg flex flex-col items-center justify-center gap-8 text-xl font-outfit" style={{"opacity":"0","visibility":"hidden"}}>
+        <a
+            href="https://wa.me/56992803368?text=Hola%2C%20quiero%20cotizar%20mi%20receta%20%C3%B3ptica."
+            target="_blank"
+            rel="noreferrer"
+            className="text-brand-text hover:text-brand-gold transition-colors"
+        >
+            Cotiza aquí ↓
+        </a>
         <a href="#quienes-somos" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Nosotros</a>
         <a href="#optiland" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Tecnología</a>
         <a href="#mision" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Misión</a>
@@ -448,60 +489,71 @@ export default function App() {
 
 
     {/* ===========================================================
-         SECCIÓN 1 — HERO
-         Logo gigante centrado + carrusel de marcas debajo.
-         Al scroll: logo shrink a esquina superior izq, carrusel fade out.
+         SECCIÓN 1 — HERO ÓPTICO
+         Fotografía full-bleed, logo 3D y transición por el visor.
          =========================================================== */}
-    <section id="hero" style={{"height":"120vh","position":"relative"}}>
-
-        {/* Subtítulo que aparece debajo del logo */}
-        <div className="flex items-center justify-center" style={{"height":"100vh","paddingTop":"8vh"}}>
-            <div className="text-center" style={{"marginTop":"28vh"}}>
-                <p id="hero-tagline" className="text-xs md:text-sm tracking-[.35em] uppercase font-outfit font-light text-brand-muted" style={{"opacity":"0"}}>
-                    Nosotros somos PitiLovers
-                </p>
+    <section id="hero" className="optical-hero">
+        <div id="hero-viewport" className="optical-hero-viewport">
+            <div id="hero-photo-stage" className="hero-photo-stage">
+                <img
+                    className="hero-photo-blur"
+                    src={assetUrl('persona-sosteniendo-lentes.jpg')}
+                    alt=""
+                />
+                <img
+                    id="hero-photo-sharp"
+                    className="hero-photo-sharp"
+                    src={assetUrl('persona-sosteniendo-lentes.jpg')}
+                    alt="Persona sosteniendo un armazón de prueba durante un examen visual"
+                />
             </div>
-        </div>
 
-        {/* Carrusel de marcas asociadas */}
-        <div id="brand-carousel" className="absolute w-full" style={{"top":"88vh"}}>
-            <p className="text-center text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted/50 mb-4">Marcas que nos respaldan</p>
-            <div className="marquee-wrapper">
-                <div className="marquee-track">
-                    {/*
-                        🖼️ LOGOS DE MARCAS — Reemplaza o agrega más imágenes.
-                        Duplica el conjunto para que el loop sea continuo.
-                    */}
-                    {/* Set 1 */}
-                    <img src="assets/brand-rayban.png" alt="Ray-Ban" style={{"height":"48px"}}  />
-                    <img src="assets/brand-veltom.png" alt="Veltom" style={{"height":"48px"}}  />
-                    <img src="assets/brand-karun.png" alt="Karün"  />
-                    <img src="assets/brand-vogue.png" alt="Vogue"  />
-                    <img src="assets/brand-saturday.png" alt="Saturday"  />
-                    <img src="assets/brand-hoya.svg" alt="HOYA" />
-                    {/* Set 2 */}
-                    <img src="assets/brand-rayban.png" alt="Ray-Ban" style={{"height":"48px"}}  />
-                    <img src="assets/brand-veltom.png" alt="Veltom" style={{"height":"48px"}}  />
-                    <img src="assets/brand-karun.png" alt="Karün"  />
-                    <img src="assets/brand-vogue.png" alt="Vogue"  />
-                    <img src="assets/brand-saturday.png" alt="Saturday"  />
-                    <img src="assets/brand-hoya.svg" alt="HOYA" />
-                    {/* Set 3 */}
-                    <img src="assets/brand-rayban.png" alt="Ray-Ban" style={{"height":"48px"}}  />
-                    <img src="assets/brand-veltom.png" alt="Veltom" style={{"height":"48px"}}  />
-                    <img src="assets/brand-karun.png" alt="Karün"  />
-                    <img src="assets/brand-vogue.png" alt="Vogue"  />
-                    <img src="assets/brand-saturday.png" alt="Saturday"  />
-                    <img src="assets/brand-hoya.png" alt="HOYA" />
-                    {/* Set 4 (extra para loop infinito) */}
-                    <img src="assets/brand-rayban.png" alt="Ray-Ban" style={{"height":"48px"}}  />
-                    <img src="assets/brand-veltom.png" alt="Veltom" style={{"height":"48px"}}  />
-                    <img src="assets/brand-karun.png" alt="Karün"  />
-                    <img src="assets/brand-vogue.png" alt="Vogue"  />
-                    <img src="assets/brand-saturday.png" alt="Saturday"  />
-                    <img src="assets/brand-hoya.png" alt="HOYA" />
+            <div id="hero-vignette" className="hero-vignette" aria-hidden="true" />
+
+            <div
+                id="hero-logo-shell"
+                className={`hero-logo-shell${heroLogoReady ? ' is-ready' : ''}`}
+            >
+                <img
+                    className="hero-logo-fallback"
+                    src={assetUrl('logo-user.png')}
+                    alt="Optivision W&M"
+                />
+                <Suspense fallback={null}>
+                    <HeroLogo3D onReady={() => setHeroLogoReady(true)} />
+                </Suspense>
+            </div>
+
+            <div id="brand-carousel" className="hero-brand-carousel">
+                <div className="marquee-wrapper">
+                    <div className="marquee-track">
+                        {[0, 1, 2, 3].flatMap((setIndex) => HERO_BRANDS.map((brand) => (
+                            <img
+                                key={`${setIndex}-${brand.name}`}
+                                src={brand.src}
+                                alt={setIndex === 0 ? brand.name : ''}
+                                aria-hidden={setIndex > 0 ? 'true' : undefined}
+                                className={brand.name === 'Ray-Ban' || brand.name === 'Veltom' ? 'brand-logo-padded' : undefined}
+                            />
+                        )))}
+                    </div>
                 </div>
             </div>
+
+            <button
+                id="hero-scroll-hint"
+                className="hero-scroll-hint"
+                type="button"
+                onClick={() => gsap.to(window, {
+                    duration: .9,
+                    scrollTo: { y: window.innerHeight * .86 },
+                    ease: 'power3.inOut'
+                })}
+            >
+                <span>Desliza para ver</span>
+                <ChevronDown size={19} strokeWidth={1.6} />
+            </button>
+
         </div>
     </section>
 
@@ -523,17 +575,33 @@ export default function App() {
                     <div className="divider"></div>
                     <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Conócenos</span>
                 </div>
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-outfit font-bold text-brand-text leading-tight">
-                    <WaveTitle text="Quiénes " /><WaveTitle text="Somos" className="text-brand-gold" />
+                <h2 className="wave-title text-3xl md:text-4xl lg:text-5xl font-outfit font-bold text-brand-text leading-tight">
+                    <WaveTitle text="Quiénes " /><WaveTitle text="Somos" className="text-brand-gold" delayOffset={8} />
                 </h2>
-                <p className="mt-6 text-brand-muted leading-relaxed text-[.95rem]">
-                    En <strong className="text-brand-text font-medium">Optivisión W&M</strong> somos una empresa óptica especializada en democratizar el acceso a la salud visual de primer nivel, combinando precisión clínica con un modelo de negocio transparente. Trabajamos junto a los laboratorios más avanzados del país para ofrecer cristales y monturas de alta tecnología, eliminando los sobreprecios del marketing tradicional para que el paciente pague exclusivamente por calidad real.
+                <p className="qs-copy mt-6 text-brand-muted leading-relaxed text-[.98rem]">
+                    Tus lentes no deberían obligarte a elegir entre <strong>ver con nitidez, sentirte cómodo y verte bien</strong>. En <strong>Optivisión W&M</strong> combinamos asesoría cercana, monturas cuidadosamente seleccionadas y cristales de laboratorios líderes para que encuentres unos lentes que realmente quieras usar, sin pagar sobreprecios innecesarios.
                 </p>
+                <dl className="qs-proof-list" aria-label="Fortalezas de Optivisión W&M">
+                    <div>
+                        <dt>2 días hábiles</dt>
+                        <dd>Listos para retiro</dd>
+                    </div>
+                    <div>
+                        <dt>Cristales premium</dt>
+                        <dd>De laboratorios líderes</dd>
+                    </div>
+                    <div>
+                        <dt>Precio transparente</dt>
+                        <dd>Pagas por calidad real</dd>
+                    </div>
+                </dl>
             </div>
 
-            {/* IMAGEN LENTE DORADO (Aparece segundo en móvil) */}
+            {/* LENTES 3D (Aparecen segundos en móvil) */}
             <div id="qs-image-container" className="order-2 lg:order-2 flex justify-center items-center">
-                <img id="qs-image" src="assets/glasses-qs.png" alt="Optivision Lentes" className="w-full max-w-md lg:max-w-lg object-contain drop-shadow-xl"  />
+                <Suspense fallback={<img src={assetUrl('glasses-qs.png')} alt="Lentes de sol Optivisión" className="qs-glasses-static" />}>
+                    <Sunglasses3D />
+                </Suspense>
             </div>
 
         </div>
@@ -556,7 +624,7 @@ export default function App() {
                 </h2>
                 {/* Nuevo Logo de Optiland */}
                 <div className="flex justify-center mt-8">
-                    <img src="assets/brand-optiland.png" alt="Optiland" className="h-14 md:h-20 object-contain"  />
+                    <img src={assetUrl('brand-optiland.png')} alt="Optiland" className="h-14 md:h-20 object-contain"  />
                 </div>
                 {/* Texto descriptivo más abajo y centrado */}
                 <p className="mt-10 text-brand-muted max-w-2xl mx-auto text-[.93rem] leading-relaxed text-center">
@@ -565,132 +633,129 @@ export default function App() {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="card p-8" id="opt-card-1" style={{"opacity":"0","transform":"translateY(30px)"}}>
-                    <div className="feature-icon mb-5">
-                        <svg className="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                    </div>
-                    <h3 className="text-lg font-outfit font-semibold text-brand-text mb-3">Precisión Freeform</h3>
-                    <p className="text-brand-muted text-sm leading-relaxed">Cristales tallados punto a punto con tecnología digital. Nitidez visual superior en toda la superficie.</p>
-                </div>
+            <div className="technology-card-grid">
                 <div className="card p-8 flex flex-col" id="opt-card-2" style={{"opacity":"0","transform":"translateY(30px)"}}>
                     <div className="feature-icon mb-5">
                         <svg className="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <h3 className="text-lg font-outfit font-semibold text-brand-text mb-3">Tecnología HOYA</h3>
                     <p className="text-brand-muted text-sm leading-relaxed flex-grow">Cristales japoneses de precisión con tratamientos premium. Nitidez inigualable, resistencia superior y confort visual para las más altas exigencias.</p>
-                    <a href="https://optiland.cl/" target="_blank" rel="noopener noreferrer" className="btn-ver-mas mt-5 w-full justify-center">
+                    <a href="https://www.hoyavision.com/es/productos-de-visi%C3%B3n/" target="_blank" rel="noopener noreferrer" className="btn-ver-mas mt-5 w-full justify-center">
                         Ver más
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        <ArrowUpRight size={16} aria-hidden="true" />
                     </a>
                 </div>
-                <div className="card p-8" id="opt-card-3" style={{"opacity":"0","transform":"translateY(30px)"}}>
+                <div className="card p-8 flex flex-col" id="opt-card-3" style={{"opacity":"0","transform":"translateY(30px)"}}>
                     <div className="feature-icon mb-5">
                         <svg className="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeWidth="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     </div>
                     <h3 className="text-lg font-outfit font-semibold text-brand-text mb-3">Protección Completa</h3>
-                    <p className="text-brand-muted text-sm leading-relaxed">Antireflejo, fotocromaticos, filtro de luz azul y UV400. Alto índice 1.56 a 1.67 y policarbonato.</p>
+                    <div className="filter-card-lens" aria-hidden="true">
+                        <span className="filter-card-lens__glass filter-card-lens__glass--left"></span>
+                        <span className="filter-card-lens__bridge"></span>
+                        <span className="filter-card-lens__glass filter-card-lens__glass--right"></span>
+                    </div>
+                    <p className="text-brand-muted text-sm leading-relaxed flex-grow">Comprueba cómo actúan los tratamientos fotocromático, Blue Cut y UV directamente sobre los cristales.</p>
                     <button id="open-filter-modal" className="btn-ver-mas mt-5 w-full justify-center">
-                        Ver más
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+                        Explorar filtros
+                        <ChevronDown size={16} aria-hidden="true" />
                     </button>
                 </div>
             </div>
 
-            <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4" id="opt-types" style={{"opacity":"0"}}>
-                <div className="bg-brand-cream border border-brand-border rounded-xl p-5 text-center">
-                    <p className="font-outfit font-semibold text-brand-text text-sm">Monofocales</p>
-                    <p className="text-brand-muted text-xs mt-1">Visión simple</p>
+            <div className="lens-type-group" id="opt-types" style={{"opacity":"0"}}>
+                <div className="lens-type-grid">
+                    {LENS_TYPES.map((lensType) => (
+                        <article className="lens-type-card" key={lensType.name}>
+                            <h3>{lensType.name}</h3>
+                            <p>{lensType.description}</p>
+                        </article>
+                    ))}
                 </div>
-                <div className="bg-brand-cream border border-brand-border rounded-xl p-5 text-center">
-                    <p className="font-outfit font-semibold text-brand-text text-sm">Bifocales</p>
-                    <p className="text-brand-muted text-xs mt-1">Flat Top</p>
-                </div>
-                <div className="bg-brand-cream border border-brand-border rounded-xl p-5 text-center">
-                    <p className="font-outfit font-semibold text-brand-text text-sm">Progresivos</p>
-                    <p className="text-brand-muted text-xs mt-1">Multifocal digital</p>
-                </div>
-                <div className="bg-brand-cream border border-brand-border rounded-xl p-5 text-center">
-                    <p className="font-outfit font-semibold text-brand-text text-sm">Ocupacionales</p>
-                    <p className="text-brand-muted text-xs mt-1">Trabajo en pantalla</p>
-                </div>
+                <a
+                    href="https://optiland.cl/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-ver-mas lens-type-shared-link"
+                    aria-label="Ver más sobre cristales en Optiland"
+                >
+                    Ver más sobre cristales
+                    <ArrowUpRight size={15} aria-hidden="true" />
+                </a>
             </div>
         </div>
     </section>
 
 
     {/* ===========================================================
-         MODAL — PRUEBA DE FOTOCROMÁTICOS
+         MODAL — EXPERIENCIA DE FILTROS ÓPTICOS
          =========================================================== */}
-    <div id="filter-modal" className="fixed inset-0 bg-brand-bg z-[100] hidden overflow-y-auto">
-        {/* Botón Cerrar */}
+    <div id="filter-modal" className="fixed inset-0 bg-brand-bg z-[100] overflow-y-auto">
         <button className="filter-modal-close" id="close-filter-modal" aria-label="Cerrar">
             <svg className="w-5 h-5" stroke="#1A1A1A" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
 
-        {/* ===== SIMULADOR FOTOCROMÁTICO (SLIDE 1) ===== */}
-        <div className="photo-scroll-container" style={{"height":"400vh","position":"relative"}}>
-            <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-4 pt-10">
-                <div className="max-w-3xl mx-auto px-6 mb-6 text-center">
-                    <div className="flex items-center justify-center gap-3 mb-3">
-                        <div className="divider"></div>
-                        <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Experiencia 1</span>
-                        <div className="divider"></div>
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-outfit font-bold text-brand-text leading-tight mb-2">
-                        <WaveTitle text="Prueba de " /><WaveTitle text="Fotocromáticos" className="text-brand-gold" />
-                    </h2>
-                    <p className="mt-2 text-brand-muted text-sm max-w-lg mx-auto leading-relaxed hidden md:block">
-                        Desliza hacia abajo para ver cómo los cristales se oscurecen al exponerse a la luz solar.
-                    </p>
+        <div className="filter-experience photo-scroll-container">
+            <div className="filter-experience__sticky">
+                <header className="filter-experience__header">
+                    <p className="filter-experience__index">Filtro 1 de 3</p>
+                    <h2><WaveTitle text="Lentes " /><WaveTitle text="Fotocromáticos" className="text-brand-gold" delayOffset={7} /></h2>
+                    <p>Se activan con la luz solar y vuelven a aclararse en interiores. Desliza para ver cómo el cristal se adapta a la intensidad de la luz.</p>
+                </header>
+
+                <div className="photo-scene filter-demo-stage">
+                    <img src={assetUrl('filtros_1.jpg')} alt="Lentes antes de activar el tratamiento fotocromático" />
+                    <img src={assetUrl('filtros_2.jpg')} className="capa-fotocromatica" data-filter-overlay alt="Lentes con el tratamiento fotocromático activado" />
+                    <div className="photo-label">Cristal transparente</div>
+                    <div className="photo-progress-bar"><div className="photo-progress-fill"></div></div>
                 </div>
-                
-                <div className="photo-scene border border-brand-gold/20 shadow-2xl rounded-2xl overflow-hidden">
-                    <img src="assets/filtros_1.jpg" alt="Lentes Transparentes"  />
-                    <img src="assets/filtros_2.jpg" id="lens-tint" className="capa-fotocromatica" alt="Lentes Oscuros" style={{"position":"absolute","top":"0","left":"0","width":"100%","height":"100%","opacity":"0"}}  />
-                    <div className="photo-label" id="photo-label">Cristal Transparente</div>
-                    <div className="photo-progress-bar">
-                        <div className="photo-progress-fill" id="photo-progress"></div>
-                    </div>
-                </div>
-                <p className="mt-6 text-brand-muted text-xs font-outfit tracking-wider uppercase text-center">↓ Desliza para activar el efecto</p>
+                <p className="filter-demo-note">Representación visual del funcionamiento del filtro.</p>
+                <p className="filter-scroll-hint">Desliza para activar <ChevronDown size={15} aria-hidden="true" /></p>
             </div>
         </div>
 
-        {/* ===== SIMULADOR POLARIZADO (SLIDE 2) ===== */}
-        <div className="photo-scroll-container-2 border-t border-brand-gold/10" style={{"height":"400vh","position":"relative"}}>
-            <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-4 pt-10">
-                <div className="max-w-3xl mx-auto px-6 mb-6 text-center">
-                    <div className="flex items-center justify-center gap-3 mb-3">
-                        <div className="divider"></div>
-                        <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Experiencia 2</span>
-                        <div className="divider"></div>
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-outfit font-bold text-brand-text leading-tight mb-2">
-                        <WaveTitle text="Lentes " /><WaveTitle text="Polarizados" className="text-brand-gold" />
-                    </h2>
-                    <p className="mt-2 text-brand-muted text-sm max-w-lg mx-auto leading-relaxed hidden md:block">
-                        Descubre cómo el filtro polarizado elimina los reflejos cegadores, mejorando el contraste.
-                    </p>
-                </div>
+        <div className="filter-experience photo-scroll-container-2">
+            <div className="filter-experience__sticky">
+                <header className="filter-experience__header">
+                    <p className="filter-experience__index">Filtro 2 de 3</p>
+                    <h2><WaveTitle text="Filtro " /><WaveTitle text="Blue Cut" className="text-brand-gold" delayOffset={7} /></h2>
+                    <p>El tratamiento Blue Cut filtra parte de la luz azul-violeta emitida por pantallas y dispositivos electrónicos.</p>
+                </header>
 
-                <div className="photo-scene border border-brand-gold/20 shadow-2xl rounded-2xl overflow-hidden">
-                    <img src="assets/polarizado_1.jpg" alt="Visión Normal con Reflejos"  />
-                    <img src="assets/polarizado_2.jpg" id="lens-tint-2" className="capa-polarizada" alt="Visión Polarizada" style={{"position":"absolute","top":"0","left":"0","width":"100%","height":"100%","objectFit":"contain","opacity":"0"}}  />
-                    <div className="photo-label" id="photo-label-2">Visión Normal (Con Reflejo)</div>
-                    <div className="photo-progress-bar">
-                        <div className="photo-progress-fill" id="photo-progress-2"></div>
-                    </div>
+                <div className="photo-scene filter-demo-stage">
+                    <img src={assetUrl('bluecut-before.jpg')} alt="Lentes con reflejo de luz azul antes de activar el filtro Blue Cut" />
+                    <img src={assetUrl('bluecut-after.jpg')} className="bluecut-filter-layer" data-filter-overlay alt="Lentes con el reflejo azul reducido después de activar el filtro Blue Cut" />
+                    <div className="photo-label">Sin filtro</div>
+                    <div className="photo-progress-bar"><div className="photo-progress-fill"></div></div>
                 </div>
-                <p className="mt-6 text-brand-muted text-xs font-outfit tracking-wider uppercase text-center">↓ Desliza para activar el polarizado</p>
+                <p className="filter-demo-note">Representación visual del funcionamiento del filtro.</p>
+                <p className="filter-scroll-hint">Desliza para activar <ChevronDown size={15} aria-hidden="true" /></p>
             </div>
         </div>
 
-        {/* Footer del modal */}
-        <div className="py-20 text-center relative z-10 border-t border-brand-gold/20">
-            <p className="font-outfit text-brand-muted text-sm mb-6">¿Listo para proteger tu visión?</p>
+        <div className="filter-experience photo-scroll-container-3">
+            <div className="filter-experience__sticky">
+                <header className="filter-experience__header">
+                    <p className="filter-experience__index">Filtro 3 de 3</p>
+                    <h2><WaveTitle text="Protección " /><WaveTitle text="UV" className="text-brand-gold" delayOffset={11} /></h2>
+                    <p>El tratamiento UV está diseñado para bloquear la radiación ultravioleta del sol antes de que llegue a tus ojos.</p>
+                </header>
+
+                <div className="photo-scene filter-demo-stage">
+                    <img src={assetUrl('uv-before.jpg')} alt="Lentes sin protección UV expuestos a la luz solar" />
+                    <img src={assetUrl('uv-after.jpg')} className="uv-filter-layer" data-filter-overlay alt="Lentes con protección UV400 activada" />
+                    <div className="photo-label">Sin filtro UV</div>
+                    <div className="photo-progress-bar"><div className="photo-progress-fill"></div></div>
+                </div>
+                <p className="filter-demo-note">Representación visual del funcionamiento del filtro.</p>
+                <p className="filter-scroll-hint">Desliza para activar <ChevronDown size={15} aria-hidden="true" /></p>
+            </div>
+        </div>
+
+        <div className="filter-modal-footer">
+            <p>Ahora puedes elegir el tratamiento que mejor acompaña tu rutina.</p>
             <button className="btn-primary" onClick={() => document.getElementById('close-filter-modal').click()}>
-                Volver a la Página
+                Volver a Tecnología
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="2" d="M5 15l7-7 7 7"/></svg>
             </button>
         </div>
@@ -720,15 +785,26 @@ export default function App() {
                     <h2 className="text-2xl md:text-3xl font-outfit font-bold text-brand-text leading-tight mb-4">
                         <WaveTitle text="Operativos " /><WaveTitle text="Oftalmológicos" className="text-brand-gold" />
                     </h2>
-                    {/* ✏️ Reemplaza con tu texto real */}
-                    <p className="text-brand-muted leading-relaxed text-[.93rem]">
-                        Llevamos la salud visual directamente a tu empresa. Como segunda rama, hacemos operativos 
-                        <strong className="text-brand-text font-medium">Oftalmológicos</strong> para eliminar las barreras de tiempo 
-                        y traslado que suelen impedir a los colaboradores acceder a una atención Óptica de calidad.
+                    <p className="text-brand-text leading-relaxed text-[1rem] font-medium">
+                        Cuando atender la salud visual exige traslados, permisos y horas fuera del puesto, suele postergarse.
                     </p>
-                    <a href="#" onClick={() => {}} className="btn-primary mt-6 inline-flex text-sm transition-all duration-300">
-                        <span id="mail-btn-text">Solicitar Operativo</span>
-                        <svg id="mail-btn-icon" className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    <p className="mt-3 text-brand-muted leading-relaxed text-[.88rem]">
+                        Optivision W&M lleva la atención óptica a tus dependencias y coordina una jornada ordenada para que tus colaboradores puedan evaluarse sin convertirlo en media jornada fuera de la empresa.
+                    </p>
+                    <ul className="mt-6 border-y border-brand-border divide-y divide-brand-border" aria-label="Beneficios para la empresa">
+                        <li className="flex items-center gap-3 py-3 text-sm text-brand-text"><span className="w-1.5 h-1.5 rounded-full bg-brand-gold" aria-hidden="true"></span>Menos tiempo fuera del puesto</li>
+                        <li className="flex items-center gap-3 py-3 text-sm text-brand-text"><span className="w-1.5 h-1.5 rounded-full bg-brand-gold" aria-hidden="true"></span>Atención en tus dependencias</li>
+                        <li className="flex items-center gap-3 py-3 text-sm text-brand-text"><span className="w-1.5 h-1.5 rounded-full bg-brand-gold" aria-hidden="true"></span>Coordinación simple para RR.HH.</li>
+                    </ul>
+                    <a
+                        href={OPERATIVOS_GMAIL_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-primary mt-6 inline-flex text-sm transition-all duration-300"
+                        aria-label="Solicitar información sobre un operativo oftalmológico por Gmail"
+                    >
+                        Solicitar Operativo
+                        <ArrowUpRight size={16} className="ml-2" aria-hidden="true" />
                     </a>
                 </div>
             </div>
@@ -1017,7 +1093,7 @@ export default function App() {
     {/* FOOTER */}
     <footer className="border-t border-brand-border py-10 px-6 lg:px-16 bg-white">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-5">
-            <img src="assets/logo-user.png" alt="Optivision W&M" className="h-8"  />
+            <img src={assetUrl('logo-user.png')} alt="Optivision W&M" className="h-8"  />
             <p className="text-brand-muted text-xs font-outfit">© 2026 Optivision W&M. Todos los derechos reservados.</p>
             <div className="flex items-center gap-4">
                 <a href="https://www.instagram.com/optivisionwm/?hl=es" target="_blank" rel="noopener noreferrer" className="text-brand-muted hover:text-brand-gold transition-colors" aria-label="Instagram"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>

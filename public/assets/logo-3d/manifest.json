@@ -1,0 +1,61 @@
+{
+  "source": "logo corregido png.png",
+  "sourceSize": {
+    "width": 2295,
+    "height": 2869
+  },
+  "parts": [
+    {
+      "name": "glasses",
+      "label": "Gafas",
+      "color": "#D9D9D9",
+      "sourceBox": {
+        "x": 270,
+        "y": 952,
+        "width": 371,
+        "height": 140
+      },
+      "vector": "vector/glasses.svg",
+      "raster": "raster/glasses.png"
+    },
+    {
+      "name": "optivision",
+      "label": "OPTIVISION",
+      "color": "#E4C19D",
+      "sourceBox": {
+        "x": 255,
+        "y": 1114,
+        "width": 1707,
+        "height": 221
+      },
+      "vector": "vector/optivision.svg",
+      "raster": "raster/optivision.png"
+    },
+    {
+      "name": "wm",
+      "label": "W&M",
+      "color": "#E4C19D",
+      "sourceBox": {
+        "x": 1318,
+        "y": 1363,
+        "width": 617,
+        "height": 325
+      },
+      "vector": "vector/wm.svg",
+      "raster": "raster/wm.png"
+    }
+  ],
+  "models": {
+    "assembled": "models/optivision-logo.glb",
+    "parts": {
+      "glasses": "models/glasses.glb",
+      "optivision": "models/optivision.glb",
+      "wm": "models/wm.glb"
+    },
+    "animation": {
+      "name": "logo-spin",
+      "durationSeconds": 12,
+      "rotationDegrees": 360
+    }
+  }
+}

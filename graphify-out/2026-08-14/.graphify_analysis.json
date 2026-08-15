@@ -1,0 +1,233 @@
+{
+  "communities": {
+    "0": [
+      "gsap",
+      "gsap_react",
+      "lucide_react",
+      "package_dependencies",
+      "package_dependencies_gsap",
+      "package_dependencies_gsap_react",
+      "package_dependencies_lucide_react",
+      "package_dependencies_react",
+      "package_dependencies_react_dom",
+      "react",
+      "react_dom"
+    ],
+    "1": [
+      "package",
+      "package_name",
+      "package_private",
+      "package_scripts",
+      "package_scripts_build",
+      "package_scripts_dev",
+      "package_scripts_lint",
+      "package_scripts_preview",
+      "package_type",
+      "package_version"
+    ],
+    "2": [
+      "oxlintrc",
+      "oxlintrc_plugins",
+      "oxlintrc_rules",
+      "oxlintrc_rules_react_only_export_components",
+      "oxlintrc_rules_react_rules_of_hooks",
+      "oxlintrc_schema",
+      "ref_oxc",
+      "ref_warn"
+    ],
+    "3": [
+      "ref_react",
+      "src_components_footer",
+      "src_components_footer_footer",
+      "src_components_navbar",
+      "src_components_navbar_navbar",
+      "src_components_technology",
+      "src_components_technology_technology"
+    ],
+    "4": [
+      "src_app",
+      "src_app_app",
+      "src_components_animatedlogo",
+      "src_components_animatedlogo_animatedlogo",
+      "src_components_wavetitle",
+      "src_components_wavetitle_wavetitle",
+      "src_main"
+    ],
+    "5": [
+      "autoprefixer",
+      "package_devdependencies",
+      "package_devdependencies_autoprefixer"
+    ],
+    "6": [
+      "oxlint",
+      "package_devdependencies_oxlint"
+    ],
+    "7": [
+      "package_devdependencies_postcss",
+      "postcss"
+    ],
+    "8": [
+      "package_devdependencies_tailwindcss",
+      "tailwindcss"
+    ],
+    "9": [
+      "package_devdependencies_tailwindcss_postcss",
+      "tailwindcss_postcss"
+    ],
+    "10": [
+      "package_devdependencies_types_react",
+      "types_react"
+    ],
+    "11": [
+      "package_devdependencies_types_react_dom",
+      "types_react_dom"
+    ],
+    "12": [
+      "package_devdependencies_vite",
+      "vite"
+    ],
+    "13": [
+      "package_devdependencies_vitejs_plugin_react",
+      "vitejs_plugin_react"
+    ],
+    "14": [
+      "src_components_hero",
+      "src_components_hero_hero"
+    ],
+    "15": [
+      "src_components_operativos",
+      "src_components_operativos_operativos"
+    ],
+    "16": [
+      "src_components_interactiveexperiences",
+      "src_components_interactiveexperiences_interactiveexperiences"
+    ],
+    "17": [
+      "src_components_whoweare",
+      "src_components_whoweare_whoweare"
+    ],
+    "18": [
+      "postcss_config"
+    ],
+    "19": [
+      "src_original"
+    ],
+    "20": [
+      "test_logo"
+    ],
+    "21": [
+      "vite_config"
+    ]
+  },
+  "cohesion": {
+    "0": 0.18181818181818182,
+    "1": 0.2,
+    "2": 0.25,
+    "3": 0.2857142857142857,
+    "4": 0.42857142857142855,
+    "5": 0.6666666666666666,
+    "6": 1.0,
+    "7": 1.0,
+    "8": 1.0,
+    "9": 1.0,
+    "10": 1.0,
+    "11": 1.0,
+    "12": 1.0,
+    "13": 1.0,
+    "14": 1.0,
+    "15": 1.0,
+    "16": 1.0,
+    "17": 1.0,
+    "18": 1.0,
+    "19": 1.0,
+    "20": 1.0,
+    "21": 1.0
+  },
+  "gods": [
+    {
+      "id": "ref_react",
+      "label": "react",
+      "degree": 12
+    },
+    {
+      "id": "package_scripts",
+      "label": "scripts",
+      "degree": 5
+    },
+    {
+      "id": "oxlintrc_plugins",
+      "label": "plugins",
+      "degree": 3
+    },
+    {
+      "id": "oxlintrc_rules",
+      "label": "rules",
+      "degree": 3
+    },
+    {
+      "id": "src_app_app",
+      "label": "App()",
+      "degree": 2
+    },
+    {
+      "id": "src_components_animatedlogo_animatedlogo",
+      "label": "AnimatedLogo()",
+      "degree": 2
+    },
+    {
+      "id": "src_components_wavetitle_wavetitle",
+      "label": "WaveTitle()",
+      "degree": 2
+    },
+    {
+      "id": "package_dependencies_gsap",
+      "label": "gsap",
+      "degree": 2
+    },
+    {
+      "id": "package_dependencies_gsap_react",
+      "label": "@gsap/react",
+      "degree": 2
+    },
+    {
+      "id": "package_dependencies_lucide_react",
+      "label": "lucide-react",
+      "degree": 2
+    }
+  ],
+  "surprises": [
+    {
+      "source": "plugins",
+      "target": "react",
+      "source_files": [
+        ".oxlintrc.json",
+        ".oxlintrc.json"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "extends",
+      "note": "Bridges community 2 → community 3"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `devDependencies` connect `devDependencies` to `package.json`, `oxlint`, `postcss`, `tailwindcss`, `@tailwindcss/postcss`, `@types/react`, `@types/react-dom`, `vite`, `@vitejs/plugin-react`?",
+      "why": "High betweenness centrality (0.199) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `react` connect `react` to `.oxlintrc.json`, `App.jsx`, `Hero.jsx`, `Operativos.jsx`, `InteractiveExperiences.jsx`, `WhoWeAre.jsx`?",
+      "why": "High betweenness centrality (0.134) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `dependencies` connect `dependencies` to `package.json`?",
+      "why": "High betweenness centrality (0.126) - this node is a cross-community bridge."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `gsap`, `@gsap/react`, `lucide-react` to the rest of the system?",
+      "why": "26 weakly-connected nodes found - possible documentation gaps or missing edges."
+    }
+  ]
+}

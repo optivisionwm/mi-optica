@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "hero:verify": "node scripts/verify_hero.mjs",
+    "technology:verify": "node scripts/verify_technology.mjs",
+    "who:verify": "node scripts/verify_who_we_are.mjs",
     "lint": "oxlint",
+    "logo:models": "node scripts/export_logo_3d.mjs",
+    "logo:verify": "node scripts/verify_logo_3d.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -14,15 +19,18 @@
     "gsap": "^3.15.0",
     "lucide-react": "^1.26.0",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
+    "@xmldom/xmldom": "^0.9.11",
     "autoprefixer": "^10.5.4",
     "oxlint": "^1.71.0",
+    "playwright": "^1.62.1",
     "postcss": "^8.5.22",
     "tailwindcss": "^4.3.3",
     "vite": "^8.1.1"

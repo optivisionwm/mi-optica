@@ -31,15 +31,176 @@
         }
         @keyframes slide { 0%{transform:translateX(-100%)} 100%{transform:translateX(350%)} }
 
-        /* --- Logo principal fijo (se anima desde centro a nav) --- */
-        #hero-logo {
-            position: fixed;
-            z-index: 100;
-            /* Estado inicial: centrado y grande */
-            top: 50%; left: 50%;
-            width: 76vw;
-            max-width: 740px;
-            pointer-events: none; /* Letras individuales tienen pointer-events: auto */
+        /* --- Hero óptico: fotografía, logo 3D y portal de lente --- */
+        .optical-hero {
+            position: relative;
+            height: 100svh;
+            background: #FAF8F4;
+        }
+
+        .optical-hero-viewport {
+            --lens-x: 70vw;
+            --lens-y: 64svh;
+            --portal-radius: 0px;
+            position: relative;
+            z-index: 10;
+            isolation: isolate;
+            width: 100%;
+            height: 100svh;
+            min-height: 620px;
+            overflow: hidden;
+            background: #0b0d0d;
+            -webkit-mask-image: radial-gradient(
+                circle at var(--lens-x) var(--lens-y),
+                transparent 0,
+                transparent var(--portal-radius),
+                #000 calc(var(--portal-radius) + 1px)
+            );
+            mask-image: radial-gradient(
+                circle at var(--lens-x) var(--lens-y),
+                transparent 0,
+                transparent var(--portal-radius),
+                #000 calc(var(--portal-radius) + 1px)
+            );
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            will-change: -webkit-mask-image, mask-image;
+        }
+
+        .hero-photo-stage {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            will-change: transform;
+        }
+
+        .hero-photo-blur,
+        .hero-photo-sharp {
+            position: absolute;
+            display: block;
+            max-width: none;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .hero-photo-blur {
+            inset: -4%;
+            width: 108%;
+            height: 108%;
+            object-fit: cover;
+            object-position: 50% 15%;
+            filter: blur(30px) saturate(.86);
+            transform: scale(1.04);
+        }
+
+        .hero-photo-sharp {
+            top: 14svh;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 14svh);
+            object-fit: cover;
+            object-position: 50% 100%;
+        }
+
+        .hero-vignette {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            opacity: .7;
+            pointer-events: none;
+            background:
+                linear-gradient(180deg, rgba(7, 9, 10, .62) 0%, rgba(7, 9, 10, .16) 46%, rgba(7, 9, 10, .46) 100%),
+                radial-gradient(ellipse at 50% 52%, transparent 30%, rgba(4, 6, 6, .5) 100%);
+        }
+
+        .hero-logo-shell {
+            position: absolute;
+            z-index: 4;
+            top: 50%;
+            left: 50%;
+            width: min(84vw, 980px);
+            height: min(35svh, 350px);
+            min-height: 220px;
+            transform: translate(-50%, -50%);
+            transform-origin: center;
+            perspective: 1100px;
+            transform-style: preserve-3d;
+            cursor: default;
+            will-change: transform, opacity, filter;
+        }
+
+        .hero-logo-fallback,
+        .hero-logo-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hero-logo-fallback {
+            object-fit: contain;
+            opacity: 1;
+            filter: drop-shadow(0 18px 30px rgba(0, 0, 0, .34));
+            transition: opacity .4s ease;
+        }
+
+        .hero-logo-canvas {
+            opacity: 0;
+            transition: opacity .45s ease;
+            touch-action: pan-y;
+        }
+
+        .hero-logo-canvas canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hero-logo-shell.is-ready .hero-logo-fallback {
+            opacity: 0;
+        }
+
+        .hero-logo-shell.is-ready .hero-logo-canvas {
+            opacity: 1;
+        }
+
+        .hero-scroll-hint {
+            position: absolute;
+            z-index: 5;
+            left: 50%;
+            bottom: 76px;
+            display: flex;
+            min-width: 148px;
+            min-height: 48px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #FFFFFF;
+            font-family: var(--font-outfit);
+            font-size: .78rem;
+            font-weight: 500;
+            letter-spacing: 0;
+            transform: translate(-50%, -50%);
+            text-shadow: 0 2px 14px rgba(0, 0, 0, .72);
+            cursor: pointer;
+        }
+
+        .hero-scroll-hint svg {
+            animation: scroll-hint 1.7s cubic-bezier(.16, 1, .3, 1) infinite;
+        }
+
+        .hero-scroll-hint:focus-visible {
+            outline: 2px solid #FFFFFF;
+            outline-offset: 4px;
+        }
+
+        @keyframes scroll-hint {
+            0%, 100% { transform: translateY(-2px); opacity: .7; }
+            55% { transform: translateY(4px); opacity: 1; }
         }
 
         /* --- Navegación --- */
@@ -59,8 +220,112 @@
         }
         .nav-link:hover::after { width:100%; }
 
+        #main-nav #nav-logo {
+            transition: opacity .35s ease, visibility .35s ease;
+        }
+
+        #main-nav.is-over-hero .nav-link {
+            color: rgba(255, 255, 255, .86);
+            text-shadow: 0 1px 12px rgba(0, 0, 0, .28);
+        }
+
+        #main-nav.is-over-hero .nav-link:hover {
+            color: #FFFFFF;
+        }
+
+        #main-nav.is-over-hero #menu-toggle span {
+            background: #FFFFFF;
+        }
+
+        @media (max-width: 640px) {
+            .optical-hero {
+                height: 100svh;
+            }
+
+            .optical-hero-viewport {
+                min-height: 0;
+            }
+
+            .hero-photo-blur {
+                object-position: 70% 15%;
+                filter: blur(24px) saturate(.84);
+            }
+
+            .hero-photo-sharp {
+                top: 11svh;
+                height: calc(100% - 11svh);
+                object-position: 70% 100%;
+            }
+
+            .hero-vignette {
+                opacity: .76;
+                background:
+                    linear-gradient(180deg, rgba(7, 9, 10, .68) 0%, rgba(7, 9, 10, .2) 46%, rgba(7, 9, 10, .52) 100%),
+                    radial-gradient(ellipse at 58% 52%, transparent 24%, rgba(4, 6, 6, .55) 100%);
+            }
+
+            .hero-logo-shell {
+                top: 50%;
+                width: 94vw;
+                height: 28svh;
+                min-height: 190px;
+            }
+
+            .hero-brand-carousel {
+                bottom: 5px;
+            }
+
+            .hero-brand-carousel .marquee-track {
+                gap: 38px;
+            }
+
+            .hero-brand-carousel .marquee-track img {
+                height: 22px;
+            }
+
+            .hero-scroll-hint {
+                bottom: 70px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .optical-hero {
+                height: 100svh;
+            }
+
+            .hero-scroll-hint svg {
+                animation: none;
+            }
+
+            .marquee-track {
+                animation-play-state: paused;
+            }
+
+            .optical-hero-viewport {
+                -webkit-mask-image: none;
+                mask-image: none;
+            }
+        }
+
         /* --- Carrusel de marcas (marquee infinito) --- */
-        .marquee-wrapper { overflow:hidden; width:100%; }
+        .hero-brand-carousel {
+            position: absolute;
+            z-index: 5;
+            left: 0;
+            bottom: 6px;
+            width: 100%;
+        }
+
+        .marquee-wrapper {
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .hero-brand-carousel .marquee-wrapper {
+            -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+        }
+
         .marquee-track {
             display:flex; align-items:center; gap: 50px;
             animation: marquee 30s linear infinite;
@@ -79,6 +344,49 @@
         }
         .marquee-track img:hover { opacity:1; filter:grayscale(0%); }
 
+        .hero-brand-carousel .marquee-track img {
+            height: 28px;
+            opacity: .72;
+            filter: grayscale(100%) brightness(0) invert(1);
+        }
+
+        .hero-brand-carousel .marquee-track img.brand-logo-padded {
+            height: 48px;
+        }
+
+        .hero-brand-carousel .marquee-track:hover {
+            animation-play-state: paused;
+        }
+
+        .hero-brand-carousel .marquee-track img:hover {
+            opacity: 1;
+            filter: none;
+        }
+
+        @media (max-width: 640px) {
+            .hero-brand-carousel {
+                bottom: 5px;
+            }
+
+            .hero-brand-carousel .marquee-track {
+                gap: 38px;
+            }
+
+            .hero-brand-carousel .marquee-track img {
+                height: 22px;
+            }
+
+            .hero-brand-carousel .marquee-track img.brand-logo-padded {
+                height: 36px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .marquee-track {
+                animation-play-state: paused;
+            }
+        }
+
         /* --- Sección Quiénes Somos: imágenes apiladas --- */
         .crossfade-stack { position:relative; }
         .crossfade-stack img {
@@ -92,14 +400,116 @@
             visibility: hidden;
         }
 
-        /* --- Quiénes Somos: Lente Dorado Hover Animación --- */
-        #qs-image {
-            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.6s ease;
-            will-change: transform, filter;
+        /* --- Quiénes Somos: pieza óptica 3D y pruebas de valor --- */
+        .qs-copy {
+            max-width: 68ch;
         }
-        #qs-image:hover {
-            transform: translateY(-12px) scale(1.05) rotate(3deg);
-            filter: drop-shadow(0 20px 30px rgba(196, 151, 74, 0.4));
+
+        .qs-copy strong {
+            color: var(--color-brand-text);
+            font-weight: 600;
+        }
+
+        .qs-proof-list {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0;
+            margin-top: 28px;
+            padding: 20px 0;
+            border-top: 1px solid rgba(196, 151, 74, .32);
+            border-bottom: 1px solid rgba(196, 151, 74, .2);
+        }
+
+        .qs-proof-list > div {
+            min-width: 0;
+            padding: 0 18px;
+        }
+
+        .qs-proof-list > div:first-child { padding-left: 0; }
+        .qs-proof-list > div:last-child { padding-right: 0; }
+        .qs-proof-list > div + div { border-left: 1px solid var(--color-brand-border); }
+
+        .qs-proof-list dt {
+            color: var(--color-brand-text);
+            font-family: var(--font-outfit);
+            font-size: .88rem;
+            font-weight: 650;
+            line-height: 1.25;
+        }
+
+        .qs-proof-list dd {
+            margin-top: 6px;
+            color: var(--color-brand-muted);
+            font-size: .72rem;
+            line-height: 1.4;
+        }
+
+        .qs-glasses-3d,
+        .qs-glasses-static {
+            width: min(100%, 590px);
+            aspect-ratio: 5 / 3;
+        }
+
+        .qs-glasses-3d {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+            touch-action: pan-y;
+            perspective: 1100px;
+        }
+
+        .qs-glasses-3d canvas,
+        .qs-glasses-fallback {
+            position: absolute;
+            inset: 0;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .qs-glasses-fallback,
+        .qs-glasses-static {
+            object-fit: contain;
+            filter: drop-shadow(0 20px 25px rgba(38, 31, 25, .22));
+        }
+
+        .qs-glasses-3d canvas {
+            z-index: 2;
+            opacity: 0;
+            transition: opacity .4s cubic-bezier(.16, 1, .3, 1);
+        }
+
+        .qs-glasses-fallback {
+            z-index: 1;
+            opacity: 1;
+            transition: opacity .3s ease;
+        }
+
+        .qs-glasses-3d::after {
+            content: '';
+            position: absolute;
+            z-index: 3;
+            top: 9%;
+            left: 7%;
+            width: 86%;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+            background: linear-gradient(90deg, transparent, rgba(196, 151, 74, .9), transparent);
+            box-shadow: 0 5px 18px rgba(196, 151, 74, .32);
+        }
+
+        .qs-glasses-3d.is-rendered canvas { opacity: 1; }
+        .qs-glasses-3d.is-rendered .qs-glasses-fallback { opacity: 0; }
+        .qs-glasses-3d.is-rendered::after {
+            animation: qs-scan 1.15s cubic-bezier(.16, 1, .3, 1) .15s both;
+        }
+
+        @keyframes qs-scan {
+            0% { opacity: 0; transform: translateY(0); }
+            18% { opacity: .85; }
+            82% { opacity: .65; }
+            100% { opacity: 0; transform: translateY(240px); }
         }
 
         /* --- Botones --- */
@@ -186,11 +596,114 @@
             box-shadow:0 8px 24px rgba(196,151,74,.25);
         }
 
-        /* --- Modal Filtros --- */
+        /* --- Tecnología: tarjetas principales y familias de cristales --- */
+        .technology-card-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 32px;
+            width: 100%;
+            max-width: 880px;
+            margin: 0 auto;
+        }
+
+        .filter-card-lens {
+            display: grid;
+            grid-template-columns: 74px 20px 74px;
+            align-items: center;
+            width: max-content;
+            margin: 2px 0 18px;
+            filter: drop-shadow(0 8px 12px rgba(38, 31, 25, .12));
+        }
+
+        .filter-card-lens__glass {
+            display: block;
+            width: 74px;
+            height: 48px;
+            border: 2px solid #9C7537;
+            background:
+                linear-gradient(135deg, rgba(255, 255, 255, .84), rgba(169, 210, 221, .22)),
+                #F7F4EE;
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .42);
+        }
+
+        .filter-card-lens__glass--left { border-radius: 45% 48% 52% 44%; }
+        .filter-card-lens__glass--right { border-radius: 48% 45% 44% 52%; }
+
+        .filter-card-lens__bridge {
+            display: block;
+            width: 22px;
+            height: 10px;
+            margin-left: -1px;
+            border-top: 2px solid #9C7537;
+            border-radius: 50% 50% 0 0;
+        }
+
+        .lens-type-group {
+            display: flex;
+            flex-direction: column;
+            margin-top: 56px;
+        }
+
+        .lens-type-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .lens-type-card {
+            display: flex;
+            min-width: 0;
+            min-height: 184px;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 22px;
+            border: 1px solid var(--color-brand-border);
+            border-radius: 8px;
+            background: var(--color-brand-cream);
+        }
+
+        .lens-type-card h3 {
+            color: var(--color-brand-text);
+            font-family: var(--font-outfit);
+            font-size: .96rem;
+            font-weight: 650;
+            line-height: 1.3;
+        }
+
+        .lens-type-card p {
+            margin-top: 10px;
+            color: var(--color-brand-muted);
+            font-size: .76rem;
+            line-height: 1.6;
+        }
+
+        .lens-type-shared-link {
+            align-self: center;
+            margin-top: 24px;
+        }
+
+        .btn-ver-mas:focus-visible {
+            outline: 2px solid var(--color-brand-gold);
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 899px) {
+            .lens-type-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 639px) {
+            .technology-card-grid,
+            .lens-type-grid { grid-template-columns: 1fr; }
+            .technology-card-grid { gap: 20px; }
+            .lens-type-card { min-height: 0; }
+        }
+
+        /* --- Modal de filtros ópticos --- */
         #filter-modal {
             position:fixed; inset:0; z-index:9998;
             background:#FAF8F4;
             overflow-y:auto; overflow-x:hidden;
+            overscroll-behavior:contain;
             visibility:hidden; opacity:0;
         }
         #filter-modal.active { visibility:visible; opacity:1; }
@@ -206,95 +719,201 @@
         .filter-modal-close:hover { background:#C4974A; transform:scale(1.1); }
         .filter-modal-close:hover svg { stroke:#fff; }
 
-        /* Lente fijo (pinned) dentro de cada bloque */
-        .lens-viewport {
-            position:relative; width:100%; height:70vh;
-            display:flex; align-items:center; justify-content:center;
-        }
-        .lens-viewport img {
-            width:100%; max-width:600px; height:auto;
-            object-fit:contain; border-radius:16px;
+        .filter-experience {
+            position: relative;
+            height: 300vh;
+            border-top: 1px solid rgba(196, 151, 74, .18);
         }
 
-        /* Capas de filtro visual */
-        .filter-overlay {
-            position:absolute; inset:0; border-radius:16px;
-            pointer-events:none; opacity:0;
-            transition: opacity .1s;
-        }
-        .filter-overlay.antireflejo {
-            background: linear-gradient(135deg, rgba(180,220,255,.12) 0%, transparent 50%, rgba(180,220,255,.08) 100%);
-            mix-blend-mode: screen;
-        }
-        .filter-overlay.fotocromatico {
-            background: rgba(60,40,20,.45);
-            mix-blend-mode: multiply;
-        }
-        .filter-overlay.luzazul {
-            background: linear-gradient(180deg, rgba(255,200,60,.08) 0%, rgba(255,180,40,.12) 100%);
-            mix-blend-mode: color;
-        }
-        .filter-overlay.uv400 {
-            background: linear-gradient(180deg, rgba(196,151,74,.06) 0%, rgba(196,151,74,.1) 100%);
-            box-shadow: inset 0 0 60px rgba(196,151,74,.15);
+        .filter-experience:first-of-type { border-top: 0; }
+
+        .filter-experience__sticky {
+            position: sticky;
+            top: 0;
+            display: flex;
+            width: 100%;
+            height: 100svh;
+            min-height: 620px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 68px 24px 24px;
+            overflow: hidden;
         }
 
-        /* Etiqueta flotante del filtro activo */
-        .filter-label {
-            position:absolute; bottom:12%; left:50%; transform:translateX(-50%);
-            font-family:'Outfit',sans-serif; font-weight:600;
-            font-size:clamp(.8rem, 2vw, 1rem); letter-spacing:.1em; text-transform:uppercase;
-            color:#C4974A; background:rgba(250,248,244,.88);
-            padding:10px 24px; border-radius:50px; border:1px solid #E8E5E0;
-            backdrop-filter:blur(10px); opacity:0; white-space:nowrap;
+        .filter-experience__header {
+            width: 100%;
+            max-width: 680px;
+            text-align: center;
         }
 
-        /* Barra de progreso de filtros */
-        .filter-progress {
-            position:sticky; top:16px; z-index:10;
-            display:flex; align-items:center; justify-content:center; gap:8px;
-            padding:10px 0;
-        }
-        .filter-dot {
-            width:8px; height:8px; border-radius:50%;
-            background:#E8E5E0; transition: background .3s, transform .3s;
-        }
-        .filter-dot.active { background:#C4974A; transform:scale(1.4); }
-        .filter-dot-label {
-            font-family:'Outfit',sans-serif; font-size:.7rem; color:#71706E;
-            letter-spacing:.08em; margin-left:4px;
+        .filter-experience__index {
+            color: #8A642D;
+            font-family: var(--font-outfit);
+            font-size: .66rem;
+            font-weight: 600;
+            letter-spacing: .18em;
+            text-transform: uppercase;
         }
 
-        /* --- Fotocromático: Lente con SVG clipPath --- */
+        .filter-experience__header h2 {
+            margin-top: 8px;
+            color: var(--color-brand-text);
+            font-family: var(--font-outfit);
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1.08;
+        }
+
+        .filter-experience__header > p:last-child {
+            max-width: 65ch;
+            margin: 12px auto 0;
+            color: var(--color-brand-muted);
+            font-size: .86rem;
+            line-height: 1.55;
+        }
+
         .photo-scene {
-            position:relative; width:100%; max-width:700px; margin:0 auto;
-            border-radius:16px; overflow:hidden;
+            position: relative;
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+            overflow: hidden;
         }
-        .photo-scene img {
-            width:100%; height:auto; display:block;
+
+        .filter-demo-stage {
+            aspect-ratio: 16 / 9;
+            border: 1px solid rgba(196, 151, 74, .28);
+            border-radius: 8px;
+            background: #EDE8DF;
+            box-shadow: 0 24px 52px rgba(38, 31, 25, .16);
+            isolation: isolate;
         }
-        /* Capa de oscurecimiento recortada al SVG de los cristales */
+
+        .filter-demo-stage > img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         .capa-fotocromatica {
-            position:absolute; inset:0;
-            opacity:0; /* GSAP controla esto */
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            opacity: 0;
         }
-        /* Indicador de progreso del fotocromático */
+
+        .bluecut-filter-layer,
+        .uv-filter-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            opacity: 0;
+        }
+
         .photo-progress-bar {
-            position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
-            width:180px; height:4px; background:rgba(255,255,255,.2);
-            border-radius:2px; overflow:hidden;
+            position: absolute;
+            z-index: 6;
+            right: 20px;
+            bottom: 18px;
+            left: 20px;
+            height: 3px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, .36);
         }
+
         .photo-progress-fill {
-            width:0%; height:100%; background:#C4974A;
-            border-radius:2px; transition:width .1s;
+            width: 0%;
+            height: 100%;
+            background: #E3B35F;
         }
+
         .photo-label {
-            position:absolute; top:20px; left:50%; transform:translateX(-50%);
-            font-family:'Outfit',sans-serif; font-weight:600;
-            font-size:clamp(.75rem, 1.8vw, .95rem); letter-spacing:.12em; text-transform:uppercase;
-            color:#fff; background:rgba(0,0,0,.35);
-            padding:8px 20px; border-radius:50px;
-            backdrop-filter:blur(8px); white-space:nowrap;
+            position: absolute;
+            z-index: 6;
+            top: 18px;
+            left: 18px;
+            max-width: calc(100% - 36px);
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: rgba(16, 17, 17, .72);
+            color: #FFFFFF;
+            font-family: var(--font-outfit);
+            font-size: .72rem;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            backdrop-filter: blur(8px);
+        }
+
+        .filter-demo-note {
+            color: var(--color-brand-muted);
+            font-size: .68rem;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        .filter-scroll-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #8A642D;
+            font-family: var(--font-outfit);
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .filter-modal-footer {
+            position: relative;
+            z-index: 2;
+            padding: 76px 24px;
+            border-top: 1px solid rgba(196, 151, 74, .2);
+            text-align: center;
+        }
+
+        .filter-modal-footer p {
+            margin-bottom: 22px;
+            color: var(--color-brand-muted);
+            font-family: var(--font-outfit);
+            font-size: .9rem;
+        }
+
+        @media (max-width: 639px) {
+            .filter-modal-close {
+                top: 14px;
+                right: 14px;
+                width: 42px;
+                height: 42px;
+            }
+
+            .filter-experience { height: 280vh; }
+
+            .filter-experience__sticky {
+                min-height: 560px;
+                gap: 12px;
+                padding: 66px 18px 18px;
+            }
+
+            .filter-experience__header h2 {
+                margin-top: 6px;
+                font-size: 2rem;
+            }
+
+            .filter-experience__header > p:last-child {
+                margin-top: 9px;
+                font-size: .78rem;
+                line-height: 1.45;
+            }
+
+            .filter-demo-stage { max-width: 520px; }
+            .photo-label { top: 12px; left: 12px; max-width: calc(100% - 24px); font-size: .62rem; }
+            .photo-progress-bar { right: 12px; bottom: 12px; left: 12px; }
+            .filter-demo-note { font-size: .62rem; }
+            .filter-scroll-hint { font-size: .62rem; }
         }
 
         /* --- Wave Hover Effect para Títulos --- */
@@ -312,29 +931,53 @@
 
         .text-wave-hover {
             display: inline-block;
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            color: var(--wave-base); /* Inicia con su color base correspondiente */
+            color: var(--wave-base);
+            transform-origin: 50% 100%;
         }
-        
+
+        h2:hover .text-wave-hover,
         .word-wave-container:hover .text-wave-hover {
-            transform: translateY(-6px) scale(1.05);
-            /* Importante: No usar la propiedad shorthand 'animation' para no sobrescribir el animation-delay de React */
-            animation-name: text-color-loop;
-            animation-duration: 1.2s;
-            animation-iteration-count: infinite;
-            animation-direction: alternate;
-            animation-fill-mode: forwards;
+            animation: title-letter-wave .72s cubic-bezier(.16, 1, .3, 1) var(--wave-delay, 0s) both;
         }
-        
-        @keyframes text-color-loop {
-            0% { 
-                color: var(--wave-target); 
-                filter: drop-shadow(0 4px 12px rgba(196, 151, 74, 0.4)); 
+
+        @keyframes title-letter-wave {
+            0%, 100% { color: var(--wave-base); transform: translateY(0) rotateX(0); }
+            42% { color: var(--wave-target); transform: translateY(-7px) rotateX(-10deg); }
+        }
+
+        @media (max-width: 639px) {
+            .qs-proof-list {
+                grid-template-columns: 1fr;
+                gap: 14px;
+                padding: 18px 0;
             }
-            100% { 
-                color: var(--wave-base); 
-                filter: drop-shadow(0 0 2px transparent); 
+
+            .qs-proof-list > div,
+            .qs-proof-list > div:first-child,
+            .qs-proof-list > div:last-child {
+                padding: 0;
             }
+
+            .qs-proof-list > div + div {
+                padding-top: 14px;
+                border-top: 1px solid var(--color-brand-border);
+                border-left: 0;
+            }
+
+            .qs-proof-list dt { font-size: .92rem; }
+            .qs-proof-list dd { font-size: .76rem; }
+            .qs-glasses-3d,
+            .qs-glasses-static { aspect-ratio: 4 / 3; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            h2:hover .text-wave-hover,
+            .word-wave-container:hover .text-wave-hover {
+                animation: none;
+                color: var(--wave-target);
+            }
+
+            .qs-glasses-3d.is-rendered::after { animation: none; }
         }
 
         /* --- Animated Logo Hover Effects --- */

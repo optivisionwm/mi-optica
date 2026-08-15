@@ -1,7 +1,6 @@
 import React from 'react';
 
-export default function WaveTitle({ text, className = '' }) {
-    // Manejo de espacios para que no se colapsen al usar inline-block
+export default function WaveTitle({ text, className = '', delayOffset = 0 }) {
     return (
         <span className={`word-wave-container ${className}`}>
             {text.split('').map((char, index) => {
@@ -13,8 +12,7 @@ export default function WaveTitle({ text, className = '' }) {
                         key={index}
                         className="text-wave-hover"
                         style={{
-                            transitionDelay: `${index * 0.03}s`,
-                            animationDelay: `${index * 0.03}s`
+                            '--wave-delay': `${(delayOffset + index) * 0.035}s`,
                         }}
                     >
                         {char}

@@ -1,0 +1,297 @@
+{
+  "communities": {
+    "0": [
+      "ref_react",
+      "src_app",
+      "src_app_app",
+      "src_app_hero_brands",
+      "src_app_herologo3d",
+      "src_app_lens_types",
+      "src_app_sunglasses3d",
+      "src_components_animatedlogo",
+      "src_components_animatedlogo_animatedlogo",
+      "src_components_footer",
+      "src_components_footer_footer",
+      "src_components_hero",
+      "src_components_hero_hero",
+      "src_components_herologo3d",
+      "src_components_herologo3d_herologo3d",
+      "src_components_interactiveexperiences",
+      "src_components_interactiveexperiences_interactiveexperiences",
+      "src_components_navbar",
+      "src_components_navbar_navbar",
+      "src_components_operativos",
+      "src_components_operativos_operativos",
+      "src_components_sunglasses3d",
+      "src_components_sunglasses3d_sunglasses3d",
+      "src_components_technology",
+      "src_components_technology_technology",
+      "src_components_wavetitle",
+      "src_components_wavetitle_wavetitle",
+      "src_components_whoweare",
+      "src_components_whoweare_whoweare",
+      "src_main"
+    ],
+    "1": [
+      "autoprefixer",
+      "oxlint",
+      "package_devdependencies",
+      "package_devdependencies_autoprefixer",
+      "package_devdependencies_oxlint",
+      "package_devdependencies_playwright",
+      "package_devdependencies_postcss",
+      "package_devdependencies_tailwindcss",
+      "package_devdependencies_tailwindcss_postcss",
+      "package_devdependencies_types_react",
+      "package_devdependencies_types_react_dom",
+      "package_devdependencies_vite",
+      "package_devdependencies_vitejs_plugin_react",
+      "package_devdependencies_xmldom_xmldom",
+      "playwright",
+      "postcss",
+      "tailwindcss",
+      "tailwindcss_postcss",
+      "types_react",
+      "types_react_dom",
+      "vite",
+      "vitejs_plugin_react",
+      "xmldom_xmldom"
+    ],
+    "2": [
+      "scripts_export_logo_3d",
+      "scripts_export_logo_3d_assetroot",
+      "scripts_export_logo_3d_creatematerialpair",
+      "scripts_export_logo_3d_createpart",
+      "scripts_export_logo_3d_createspinanimation",
+      "scripts_export_logo_3d_exportglb",
+      "scripts_export_logo_3d_extrusionbypart",
+      "scripts_export_logo_3d_main",
+      "scripts_export_logo_3d_manifestpath",
+      "scripts_export_logo_3d_modeldirectory",
+      "scripts_export_logo_3d_normalizemodel",
+      "scripts_export_logo_3d_parsefromstring",
+      "scripts_export_logo_3d_readasarraybuffer",
+      "scripts_export_logo_3d_readasdataurl",
+      "scripts_export_logo_3d_repositoryroot",
+      "scripts_export_logo_3d_scriptdirectory",
+      "scripts_export_logo_3d_yaxis"
+    ],
+    "3": [
+      "public_assets_logo_3d_manifest",
+      "public_assets_logo_3d_manifest_animation_durationseconds",
+      "public_assets_logo_3d_manifest_animation_name",
+      "public_assets_logo_3d_manifest_animation_rotationdegrees",
+      "public_assets_logo_3d_manifest_models",
+      "public_assets_logo_3d_manifest_models_animation",
+      "public_assets_logo_3d_manifest_models_assembled",
+      "public_assets_logo_3d_manifest_models_parts",
+      "public_assets_logo_3d_manifest_parts",
+      "public_assets_logo_3d_manifest_parts_glasses",
+      "public_assets_logo_3d_manifest_parts_optivision",
+      "public_assets_logo_3d_manifest_parts_wm",
+      "public_assets_logo_3d_manifest_source",
+      "public_assets_logo_3d_manifest_sourcesize",
+      "public_assets_logo_3d_manifest_sourcesize_height",
+      "public_assets_logo_3d_manifest_sourcesize_width"
+    ],
+    "4": [
+      "package",
+      "package_name",
+      "package_private",
+      "package_scripts",
+      "package_scripts_build",
+      "package_scripts_dev",
+      "package_scripts_hero_verify",
+      "package_scripts_lint",
+      "package_scripts_logo_models",
+      "package_scripts_logo_verify",
+      "package_scripts_preview",
+      "package_scripts_technology_verify",
+      "package_scripts_who_verify",
+      "package_type",
+      "package_version"
+    ],
+    "5": [
+      "gsap",
+      "gsap_react",
+      "lucide_react",
+      "package_dependencies",
+      "package_dependencies_gsap",
+      "package_dependencies_gsap_react",
+      "package_dependencies_lucide_react",
+      "package_dependencies_react",
+      "package_dependencies_react_dom",
+      "package_dependencies_three",
+      "react",
+      "react_dom",
+      "three"
+    ],
+    "6": [
+      "ndarray",
+      "path",
+      "scripts_vectorize_logo",
+      "scripts_vectorize_logo_contour_path",
+      "scripts_vectorize_logo_find_bands",
+      "scripts_vectorize_logo_logopart",
+      "scripts_vectorize_logo_main",
+      "scripts_vectorize_logo_write_svg"
+    ],
+    "7": [
+      "oxlintrc",
+      "oxlintrc_plugins",
+      "oxlintrc_rules",
+      "oxlintrc_rules_react_only_export_components",
+      "oxlintrc_rules_react_rules_of_hooks",
+      "oxlintrc_schema",
+      "ref_oxc",
+      "ref_warn"
+    ],
+    "8": [
+      "scripts_verify_who_we_are",
+      "scripts_verify_who_we_are_hash",
+      "scripts_verify_who_we_are_inspectpng",
+      "scripts_verify_who_we_are_inspectreducedmotion",
+      "scripts_verify_who_we_are_inspectviewport",
+      "scripts_verify_who_we_are_outputdirectory",
+      "scripts_verify_who_we_are_repositoryroot",
+      "scripts_verify_who_we_are_scriptdirectory"
+    ],
+    "9": [
+      "scripts_verify_technology",
+      "scripts_verify_technology_experiences",
+      "scripts_verify_technology_inspectviewport",
+      "scripts_verify_technology_outputdirectory",
+      "scripts_verify_technology_repositoryroot",
+      "scripts_verify_technology_scriptdirectory",
+      "scripts_verify_technology_setmodalprogress"
+    ],
+    "10": [
+      "scripts_verify_hero",
+      "scripts_verify_hero_hash",
+      "scripts_verify_hero_inspectviewport",
+      "scripts_verify_hero_outputdirectory",
+      "scripts_verify_hero_repositoryroot",
+      "scripts_verify_hero_scriptdirectory"
+    ],
+    "11": [
+      "scripts_verify_logo_3d",
+      "scripts_verify_logo_3d_artifactdirectory",
+      "scripts_verify_logo_3d_repositoryroot",
+      "scripts_verify_logo_3d_scriptdirectory",
+      "scripts_verify_logo_3d_verifyviewport"
+    ],
+    "12": [
+      "readme",
+      "readme_expanding_the_oxlint_configuration",
+      "readme_react_compiler",
+      "readme_react_vite"
+    ],
+    "13": [
+      "src_logo3d_preview_main",
+      "src_logo3d_preview_main_assets",
+      "src_logo3d_preview_main_logo3dpreview",
+      "src_logo3d_preview_main_logo3dviewer"
+    ],
+    "14": [
+      "postcss_config"
+    ],
+    "15": [
+      "src_original"
+    ],
+    "16": [
+      "test_logo"
+    ],
+    "17": [
+      "vite_config"
+    ]
+  },
+  "cohesion": {
+    "0": 0.08505747126436781,
+    "1": 0.08695652173913043,
+    "2": 0.15441176470588236,
+    "3": 0.125,
+    "4": 0.13333333333333333,
+    "5": 0.15384615384615385,
+    "6": 0.42857142857142855,
+    "7": 0.25,
+    "8": 0.2857142857142857,
+    "9": 0.3333333333333333,
+    "10": 0.3333333333333333,
+    "11": 0.4,
+    "12": 0.5,
+    "13": 0.5,
+    "14": 1.0,
+    "15": 1.0,
+    "16": 1.0,
+    "17": 1.0
+  },
+  "gods": [
+    {
+      "id": "ref_react",
+      "label": "react",
+      "degree": 15
+    },
+    {
+      "id": "package_scripts",
+      "label": "scripts",
+      "degree": 10
+    },
+    {
+      "id": "scripts_export_logo_3d_main",
+      "label": "main()",
+      "degree": 4
+    },
+    {
+      "id": "scripts_vectorize_logo_main",
+      "label": "main()",
+      "degree": 4
+    },
+    {
+      "id": "scripts_vectorize_logo_write_svg",
+      "label": "write_svg()",
+      "degree": 4
+    },
+    {
+      "id": "public_assets_logo_3d_manifest_models",
+      "label": "models",
+      "degree": 4
+    },
+    {
+      "id": "public_assets_logo_3d_manifest_models_animation",
+      "label": "animation",
+      "degree": 4
+    },
+    {
+      "id": "public_assets_logo_3d_manifest_models_parts",
+      "label": "parts",
+      "degree": 4
+    },
+    {
+      "id": "scripts_export_logo_3d_createpart",
+      "label": "createPart()",
+      "degree": 3
+    },
+    {
+      "id": "scripts_export_logo_3d_exportglb",
+      "label": "exportGlb()",
+      "degree": 3
+    }
+  ],
+  "surprises": [
+    {
+      "source": "plugins",
+      "target": "react",
+      "source_files": [
+        ".oxlintrc.json",
+        ".oxlintrc.json"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "extends",
+      "note": "Bridges community 0 \u2192 community 7"
+    }
+  ],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}
