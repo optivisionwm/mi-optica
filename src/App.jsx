@@ -527,7 +527,7 @@ export default function App() {
                 <span>Desliza para ver</span>
                 <ChevronDown size={19} strokeWidth={1.6} />
             </button>
-            <a className="hero-location" href="https://maps.google.com/?q=Mall+Apumanque+Local+132,+Las+Condes" target="_blank" rel="noopener noreferrer">
+            <a className="hero-location" href="https://www.google.com/maps/place/OptivisionW%26M/data=!4m2!3m1!1s0x0:0x4dc94297887a9b9b" target="_blank" rel="noopener noreferrer">
                 <MapPin size={13} aria-hidden="true" />Mall Apumanque · Local 132, piso 2
             </a>
             <div id="brand-carousel" className="hero-brand-carousel">
@@ -867,7 +867,7 @@ export default function App() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                 {/* Mapa + Dirección */}
                 <div id="ct-left">
-                    <a href="https://maps.google.com/?q=Mall+Apumanque+Local+132,+Las+Condes" target="_blank" rel="noopener noreferrer" className="block relative h-72 rounded-xl overflow-hidden border border-brand-border group cursor-pointer shadow-sm hover:shadow-lg transition-shadow">
+                    <a href="https://www.google.com/maps/place/OptivisionW%26M/data=!4m2!3m1!1s0x0:0x4dc94297887a9b9b" target="_blank" rel="noopener noreferrer" className="block relative h-72 rounded-xl overflow-hidden border border-brand-border group cursor-pointer shadow-sm hover:shadow-lg transition-shadow">
                         {/* Capa visual estética al pasar el mouse o tocar */}
                         <div className="absolute inset-0 bg-brand-text/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center backdrop-blur-[2px]">
                             <span className="bg-white text-brand-text px-5 py-2.5 rounded-full text-sm font-outfit font-medium flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-md">
@@ -919,7 +919,11 @@ export default function App() {
                         </div>
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between py-2 border-b border-brand-border">
-                                <span className="text-brand-muted font-outfit">Lunes – Sábado</span>
+                                <span className="text-brand-muted font-outfit">Lunes</span>
+                                <span className="text-brand-text font-medium font-outfit">10:00 — 20:30 hrs</span>
+                            </div>
+                            <div className="flex justify-between py-2 border-b border-brand-border">
+                                <span className="text-brand-muted font-outfit">Martes – Sábado</span>
                                 <span className="text-brand-text font-medium font-outfit">10:00 — 20:00 hrs</span>
                             </div>
                             <div className="flex justify-between py-2">

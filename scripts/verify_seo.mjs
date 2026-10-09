@@ -36,7 +36,11 @@ test('structured data describes verified contact details without invented rating
   assert.equal(business.address.addressLocality, 'Las Condes');
   assert.match(business.address.streetAddress, /132/);
   assert.equal(business.address.addressCountry, 'CL');
-  assert.equal(business.openingHoursSpecification.length, 2);
+  const hoursFor = day => business.openingHoursSpecification.find(hours =>
+    [hours.dayOfWeek].flat().includes(day));
+  assert.equal(hoursFor('Monday').closes, '20:30');
+  assert.equal(hoursFor('Tuesday').closes, '20:00');
+  assert.equal(hoursFor('Sunday').opens, '11:00');
   assert.equal(business.aggregateRating, undefined);
   assert.equal(business.review, undefined);
 });

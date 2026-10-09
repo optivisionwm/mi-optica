@@ -20,7 +20,19 @@ El lint global tiene errores anteriores en src/original.jsx (archivo antiguo fue
 
 ## Operación en Google
 
-Después de publicar: verificar propiedad en Search Console, enviar sitemap.xml e inspeccionar la URL principal para solicitar indexación. Registrar el estado devuelto por Google sin confundir solicitud enviada con URL indexada.
+Estado comprobado el 9 de octubre de 2026:
+
+- Propiedad de prefijo URL verificada en Search Console con la etiqueta HTML.
+- Pruebas en vivo de la página principal y de sitemap.xml: rastreo permitido, descarga exitosa e indexación permitida. La página principal declara la URL canónica correcta.
+- El informe del índice aún indica que la página principal no está en Google y que la URL es desconocida. No se ha acreditado indexación ni posiciones de búsqueda.
+- Sitemap enviado y reenviado una vez después de comprobar su lectura en vivo. El informe de Sitemaps mantiene `Couldn't fetch`; no hay bloqueo en robots.txt, los archivos públicos responden 200 y el informe de acciones manuales no detecta problemas. Falta comprobar el próximo procesamiento de Google; no se identificó una causa específica dentro del sitio.
+- La solicitud manual de indexación devolvió `Quota Exceeded` y Google pide reintentar al día siguiente. La solicitud no fue aceptada.
+- En el Perfil de Empresa se guardaron el sitio web, WhatsApp, una descripción específica de ubicación y servicios, y Santiago como única área de servicio, según confirmación del propietario.
+- El propietario confirmó cierre del lunes a las 20:30. La página visible y los datos estructurados se ajustaron a ese horario; martes a sábado mantienen 10:00–20:00 y domingo 11:00–20:00.
+- La web enlaza ahora a la ficha exacta de la óptica en Maps.
+- Google exige volver a verificar el Perfil de Empresa mediante video. Las ediciones guardadas no están confirmadas como públicas hasta completar ese requisito. El flujo ofrece grabación continua en el local: entorno y dirección, cartel permanente con el nombre y acceso que demuestre administración. No se grabó ni envió un video.
+
+Después de cambios: inspeccionar la URL principal y registrar el estado devuelto por Google sin confundir solicitud enviada con URL indexada. Conservar la etiqueta HTML de verificación.
 
 En Perfil de Empresa: mantener el nombre real, categoría Óptica si corresponde, dirección/local/piso, horarios, teléfono y enlace web coherentes; completar productos reales y fotografías propias; solicitar reseñas auténticas sin incentivos. Confirmar la ficha correcta antes de editar.
 
