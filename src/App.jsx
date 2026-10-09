@@ -63,6 +63,7 @@ export default function App() {
         try {
             
         gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+        ScrollTrigger.config({ ignoreMobileResize: false });
         const reduceMotion = prefersReducedMotion();
 
         // --- Menú móvil ---
@@ -173,8 +174,8 @@ export default function App() {
             }, { once: true });
         }
 
+        const heroScrollDistance = () => document.getElementById('hero').offsetHeight;
         if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            const heroScrollDistance = () => window.innerHeight;
             const heroTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: '#hero',
@@ -239,7 +240,7 @@ export default function App() {
         ScrollTrigger.create({
             trigger: '#hero',
             start: 'top top',
-            end: () => `+=${window.innerHeight}`,
+            end: () => `+=${heroScrollDistance()}`,
             onUpdate: (self) => updateNavState(self.progress > 0.8),
             onLeave: () => updateNavState(true),
             onEnterBack: (self) => updateNavState(self.progress > 0.8),
@@ -571,16 +572,19 @@ export default function App() {
                 <h2 className="wave-title text-3xl md:text-4xl lg:text-5xl font-outfit font-bold text-brand-text leading-tight">
                     <WaveTitle text="Quiénes " /><WaveTitle text="Somos" className="text-brand-gold" delayOffset={8} />
                 </h2>
-                <p className="qs-copy mt-6 text-brand-muted leading-relaxed text-[.98rem]">
-                    Tus lentes te acompañan todo el día: al trabajar, leer y disfrutar lo que te gusta. En <strong>Optivisión W&M</strong> te ayudamos a elegir una montura cómoda y los cristales adecuados para tu receta, tu rutina y tu presupuesto. Con atención personal, desde la elección hasta el retiro.
-                </p>
+                <div className="qs-copy">
+                    <p className="qs-lead">Tus lentes te acompañan al trabajar, leer y disfrutar lo que te gusta.</p>
+                    <p>
+                        En <strong>Optivisión W&M</strong> te ayudamos a elegir una montura cómoda y los cristales para tu receta, tu rutina y tu presupuesto. Te acompañamos con atención personal, desde la elección hasta el retiro.
+                    </p>
+                </div>
                 <dl className="qs-proof-list" aria-label="Fortalezas de Optivisión W&M">
                     <div>
-                        <dt>Monofocales: 2 días hábiles</dt>
+                        <dt>Monofocales: <span className="qs-proof-time">2 días hábiles</span></dt>
                         <dd>Listos para retiro en tienda</dd>
                     </div>
                     <div>
-                        <dt>Bifocales y multifocales: 5 días hábiles</dt>
+                        <dt>Bifocales y multifocales: <span className="qs-proof-time">5 días hábiles</span></dt>
                         <dd>Listos para retiro en tienda</dd>
                     </div>
                     <div>
