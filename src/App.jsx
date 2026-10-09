@@ -409,7 +409,7 @@ export default function App() {
 
     {/* ===== PRELOADER ===== */}
     <div id="preloader">
-        <p className="font-outfit text-sm text-brand-muted">Optivision W&M</p>
+        <p className="font-outfit text-sm text-brand-muted">CARGANDO A TUS PITILOVERS 😎</p>
         <div className="loader-bar"></div>
     </div>
 
