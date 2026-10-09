@@ -2,15 +2,16 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
-import { ArrowUpRight, ChevronDown } from 'lucide-react';
+import { ArrowDown, ArrowUpRight, ChevronDown, MapPin, MessageCircle } from 'lucide-react';
 import WaveTitle from './components/WaveTitle';
 import AnimatedLogo from './components/AnimatedLogo';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 const HeroLogo3D = lazy(() => import('./components/HeroLogo3D'));
-const Sunglasses3D = lazy(() => import('./components/Sunglasses3D'));
 const assetUrl = (path) => `${import.meta.env.BASE_URL}assets/${path}`;
+const WHATSAPP_URL = 'https://wa.me/56992803368?text=Hola%2C%20quiero%20cotizar%20mi%20receta%20%C3%B3ptica.';
+const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const HERO_BRANDS = [
     { name: 'Ray-Ban', src: assetUrl('brand-rayban.png') },
@@ -56,11 +57,13 @@ export default function App() {
   const [heroLogoReady, setHeroLogoReady] = useState(false);
 
   useEffect(() => { 
+    let sectionMotion;
     // Wait a tick for DOM to be ready
     const setupTimer = setTimeout(() => {
         try {
             
         gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+        const reduceMotion = prefersReducedMotion();
 
         // --- Menú móvil ---
         const menuToggle = document.getElementById('menu-toggle');
@@ -70,11 +73,17 @@ export default function App() {
             menuOpen = !menuOpen;
             mobileMenu.style.opacity    = menuOpen ? '1' : '0';
             mobileMenu.style.visibility = menuOpen ? 'visible' : 'hidden';
+            menuToggle.setAttribute('aria-expanded', String(menuOpen));
+            mobileMenu.inert = !menuOpen;
+            document.getElementById('main-nav').classList.toggle('menu-is-open', menuOpen);
         });
         function closeMobileMenu() {
             menuOpen = false;
             mobileMenu.style.opacity = '0';
             mobileMenu.style.visibility = 'hidden';
+            menuToggle.setAttribute('aria-expanded', 'false');
+            mobileMenu.inert = true;
+            document.getElementById('main-nav').classList.remove('menu-is-open');
         }
 
         // --- Forzar inicio de página al recargar ---
@@ -93,7 +102,7 @@ export default function App() {
             }, 50);
 
             gsap.to('#preloader', {
-                opacity:0, duration:.8, delay:.7,
+                opacity:0, duration: reduceMotion ? 0 : .35, delay: reduceMotion ? 0 : .15,
                 onComplete: () => {
                     const el = document.getElementById('preloader');
                     if(el) el.classList.add('hidden');
@@ -101,11 +110,10 @@ export default function App() {
             });
             // La animación de entrada del logo se elimina porque entraba en conflicto con el ScrollTrigger al recargar (F5)
             // El preloader ya cumple la función de revelar la pantalla con suavidad.
-            gsap.timeline({ delay: 1.1 })
-                .fromTo('#hero-logo-shell', { opacity:0, y:10 }, { opacity:1, y:0, duration:.8, ease:'power3.out' })
-                .fromTo('#brand-carousel', { opacity:0, y:8 }, { opacity:1, y:0, duration:.55, ease:'power2.out' }, '-=.55')
-                .fromTo('#hero-scroll-hint', { opacity:0 }, { opacity:1, duration:.55, ease:'power2.out' }, '-=.35')
-                .to('#main-nav', { opacity:1, duration:.7, ease:'power2.out' }, '-=.45');
+            gsap.fromTo(['#hero-main', '#hero-wayfinding', '#main-nav'],
+                { opacity: 0 },
+                { opacity: 1, duration: reduceMotion ? 0 : .65, delay: reduceMotion ? 0 : .25, stagger: reduceMotion ? 0 : .06, ease: 'power2.out' }
+            );
         };
 
         if (document.readyState === 'complete') {
@@ -121,6 +129,8 @@ export default function App() {
         const heroViewport = document.getElementById('hero-viewport');
         const heroPhotoStage = document.getElementById('hero-photo-stage');
         const heroPhoto = document.getElementById('hero-photo-sharp');
+        const heroMain = document.getElementById('hero-main');
+        const heroLogo = document.getElementById('hero-logo-shell');
         const lensGeometry = {
             x: window.innerWidth * 0.7,
             y: window.innerHeight * 0.64,
@@ -131,18 +141,20 @@ export default function App() {
             if (!heroViewport || !heroPhotoStage || !heroPhoto) return;
 
             const viewportRect = heroViewport.getBoundingClientRect();
-            const photoRect = heroPhoto.getBoundingClientRect();
+            // Layout dimensions stay stable while the photograph is zooming.
+            const photoWidth = heroPhoto.offsetWidth;
+            const photoHeight = heroPhoto.offsetHeight;
             const naturalWidth = heroPhoto.naturalWidth || 3225;
             const naturalHeight = heroPhoto.naturalHeight || 2148;
             const objectPositionX = window.matchMedia('(max-width: 640px)').matches ? 0.7 : 0.5;
-            const renderScale = Math.max(photoRect.width / naturalWidth, photoRect.height / naturalHeight);
+            const renderScale = Math.max(photoWidth / naturalWidth, photoHeight / naturalHeight);
             const renderedWidth = naturalWidth * renderScale;
             const renderedHeight = naturalHeight * renderScale;
-            const offsetX = (photoRect.width - renderedWidth) * objectPositionX;
-            const offsetY = photoRect.height - renderedHeight;
+            const offsetX = (photoWidth - renderedWidth) * objectPositionX;
+            const offsetY = photoHeight - renderedHeight;
 
-            lensGeometry.x = photoRect.left - viewportRect.left + offsetX + naturalWidth * 0.703 * renderScale;
-            lensGeometry.y = photoRect.top - viewportRect.top + offsetY + naturalHeight * 0.643 * renderScale;
+            lensGeometry.x = heroPhoto.offsetLeft + offsetX + naturalWidth * 0.703 * renderScale;
+            lensGeometry.y = heroPhoto.offsetTop + offsetY + naturalHeight * 0.643 * renderScale;
             lensGeometry.maxRadius = Math.hypot(
                 Math.max(lensGeometry.x, viewportRect.width - lensGeometry.x),
                 Math.max(lensGeometry.y, viewportRect.height - lensGeometry.y)
@@ -168,7 +180,7 @@ export default function App() {
                     trigger: '#hero',
                     start: 'top top',
                     end: () => `+=${heroScrollDistance()}`,
-                    scrub: 0.65,
+                    scrub: 0.85,
                     pin: heroViewport,
                     pinSpacing: false,
                     anticipatePin: 1,
@@ -176,7 +188,7 @@ export default function App() {
                     onRefreshInit: updateLensGeometry,
                     onUpdate: (self) => {
                         if (self.progress > .005) return;
-                        gsap.set(['#hero-scroll-hint', '#brand-carousel'], {
+                        gsap.set('#hero-wayfinding', {
                             opacity: 1,
                             y: 0,
                         });
@@ -185,24 +197,27 @@ export default function App() {
             });
 
             heroTimeline
-                .fromTo('#hero-scroll-hint',
+                .fromTo('#hero-wayfinding',
                     { opacity:1, y:0 },
-                    { opacity:0, y:-14, duration:.14, ease:'power2.out', immediateRender:false },
+                    { opacity:0, y:6, duration:.2, ease:'power2.out', immediateRender:false },
                     0
                 )
-                .fromTo('#brand-carousel',
-                    { opacity:1, y:0 },
-                    { opacity:0, y:12, duration:.16, ease:'power2.out', immediateRender:false },
-                    0
-                )
-                .to('#hero-logo-shell', { opacity:0, scale:.78, filter:'blur(5px)', duration:.28, ease:'power2.in' }, .08)
+                .to('.hero-copy', { opacity:0, y:8, duration:.22, ease:'power2.out' }, .02)
+                .to(heroLogo, {
+                    x: () => lensGeometry.x - heroMain.offsetLeft - heroLogo.offsetLeft - heroLogo.offsetWidth / 2,
+                    y: () => lensGeometry.y - heroMain.offsetTop - heroLogo.offsetTop - heroLogo.offsetHeight / 2,
+                    scale: .045,
+                    duration: .52,
+                    ease: 'power2.inOut',
+                }, .06)
+                .to(heroLogo, { opacity:0, duration:.12, ease:'power1.in' }, .54)
                 .to(heroPhotoStage, { scale:4.2, duration:1, ease:'none' }, 0)
                 .to('#hero-vignette', { opacity:.82, duration:.38, ease:'none' }, 0)
                 .to(heroViewport, {
                     '--portal-radius': () => `${lensGeometry.maxRadius}px`,
-                    duration:.66,
+                    duration:.27,
                     ease:'power2.inOut'
-                }, .3);
+                }, .58);
         }
 
 
@@ -225,71 +240,31 @@ export default function App() {
             trigger: '#hero',
             start: 'top top',
             end: () => `+=${window.innerHeight}`,
-            onUpdate: (self) => updateNavState(self.progress > 0.86),
+            onUpdate: (self) => updateNavState(self.progress > 0.8),
             onLeave: () => updateNavState(true),
-            onEnterBack: () => updateNavState(false),
+            onEnterBack: (self) => updateNavState(self.progress > 0.8),
         });
 
 
         // ============================================================
-        // 4. QUIÉNES SOMOS — Fade in & out en ambas direcciones
+        // 4. Reveal content once, with no residual horizontal offsets.
         // ============================================================
-        gsap.fromTo(['#qs-text-container', '#qs-image-container'], 
-            { opacity: 0, y: 40 },
-            { 
-                opacity: 1, 
-                y: 0,
-                duration: 1.2,
-                stagger: 0.2,
-                ease: 'power2.out',
-                scrollTrigger: {
-                    trigger: '#quienes-somos',
-                    start: 'top 75%',
-                    end: 'bottom 25%',
-                    toggleActions: 'play reverse play reverse'
+        const revealTargets = '#qs-text-container, #qs-image-container, #optiland-header, #opt-card-2, #opt-card-3, #opt-types, #operativos-content, #mision-header, #mis-1, #mis-2, #mis-3, #mis-quote, #ct-header, #ct-left, #ct-right';
+        sectionMotion = gsap.matchMedia();
+        sectionMotion.add({ reduce: '(prefers-reduced-motion: reduce)', animate: '(prefers-reduced-motion: no-preference)' }, (context) => {
+            gsap.utils.toArray(revealTargets).forEach((element) => {
+                if (context.conditions.reduce) {
+                    gsap.set(element, { opacity: 1, clearProps: 'transform' });
+                    return;
                 }
-            }
-        );
-
-        // ============================================================
-        // 5. SECCIONES RESTANTES — Fade in & out unificado
-        // ============================================================
-
-        // Optiland
-        gsap.fromTo(['#optiland-header', '#opt-card-2', '#opt-card-3', '#opt-types'],
-            { opacity: 0, y: 40 },
-            { 
-                opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: 'power2.out',
-                scrollTrigger: { trigger: '#optiland', start: 'top 75%', end: 'bottom 25%', toggleActions: 'play reverse play reverse' }
-            }
-        );
-
-        // Operativos
-        gsap.fromTo('#operativos-content',
-            { opacity: 0, y: 40 },
-            { 
-                opacity: 1, y: 0, duration: 1.2, ease: 'power2.out',
-                scrollTrigger: { trigger: '#operativos', start: 'top 75%', end: 'bottom 25%', toggleActions: 'play reverse play reverse' }
-            }
-        );
-
-        // Misión
-        gsap.fromTo(['#mision-header', '#mis-1', '#mis-2', '#mis-3', '#mis-quote'],
-            { opacity: 0, y: 40 },
-            { 
-                opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: 'power2.out',
-                scrollTrigger: { trigger: '#mision', start: 'top 75%', end: 'bottom 25%', toggleActions: 'play reverse play reverse' }
-            }
-        );
-
-        // Contacto
-        gsap.fromTo(['#ct-header', '#ct-left', '#ct-right'],
-            { opacity: 0, y: 40 },
-            { 
-                opacity: 1, y: 0, duration: 1.2, stagger: 0.15, ease: 'power2.out',
-                scrollTrigger: { trigger: '#contacto', start: 'top 80%', end: 'bottom 20%', toggleActions: 'play reverse play reverse' }
-            }
-        );
+                // Each block reveals when it enters, and stays readable on return scroll.
+                gsap.fromTo(element, { opacity: 0, x: 0, y: 12 }, {
+                    opacity: 1, x: 0, y: 0, duration: .65, ease: 'power2.out',
+                    clearProps: 'transform',
+                    scrollTrigger: { trigger: element, start: 'top 92%', once: true },
+                });
+            });
+        });
 
 
         // ============================================================
@@ -298,8 +273,11 @@ export default function App() {
         document.querySelectorAll('a[href^="#"]').forEach(a => {
             a.addEventListener('click', function(e) {
                 e.preventDefault(); closeMobileMenu();
-                const t = document.querySelector(this.getAttribute('href'));
-                if (t) gsap.to(window, { duration:1.2, scrollTo:{y:t,offsetY:70}, ease:'power2.inOut' });
+                const href = this.getAttribute('href');
+                if (href === '#') return;
+                const t = href === '#top' ? 0 : document.querySelector(href);
+                const navHeight = document.getElementById('main-nav').offsetHeight;
+                if (t !== null) gsap.to(window, { duration: prefersReducedMotion() ? 0 : .75, scrollTo:{y:t,offsetY:navHeight + 20}, ease:'power2.inOut', overwrite: 'auto' });
             });
         });
 
@@ -317,11 +295,10 @@ export default function App() {
             filterModal.classList.add('active');
             document.body.style.overflow = 'hidden';
             gsap.fromTo(filterModal, 
-                { opacity: 0, scale: 0.95 }, 
+                { opacity: 0 },
                 {
                     opacity: 1,
-                    scale: 1,
-                    duration: 0.5,
+                    duration: prefersReducedMotion() ? 0 : .25,
                     ease: 'power3.out',
                     onComplete: () => gsap.set(filterModal, { clearProps: 'transform' }),
                 }
@@ -331,7 +308,7 @@ export default function App() {
 
         function closeFilterModal() {
             gsap.to(filterModal, {
-                opacity: 0, scale: 0.96, duration: 0.35, ease: 'power2.in',
+                opacity: 0, duration: prefersReducedMotion() ? 0 : .2, ease: 'power1.out', overwrite: true,
                 onComplete: () => {
                     filterModal.classList.remove('active');
                     document.body.style.overflow = '';
@@ -385,7 +362,7 @@ export default function App() {
                         scroller: filterModal,
                         start: 'top top',
                         end: 'bottom bottom',
-                        scrub: 0.8,
+                        scrub: prefersReducedMotion() ? true : 0.65,
                         onUpdate: (self) => {
                             const p = self.progress;
                             if (progressBar) progressBar.style.width = `${p * 100}%`;
@@ -423,7 +400,7 @@ export default function App() {
       }
     };
     window.closeMobileMenu = closeMobileMenu;
-    return () => clearTimeout(setupTimer);
+    return () => { clearTimeout(setupTimer); sectionMotion?.revert(); };
   }, []);
 
   return (
@@ -432,7 +409,7 @@ export default function App() {
 
     {/* ===== PRELOADER ===== */}
     <div id="preloader">
-        <p className="font-outfit text-xs tracking-[.3em] uppercase text-brand-muted">CARGANDO A TUS PITILOVERS 😎</p>
+        <p className="font-outfit text-sm text-brand-muted">Optivision W&M</p>
         <div className="loader-bar"></div>
     </div>
 
@@ -440,32 +417,27 @@ export default function App() {
     <nav id="main-nav" className="is-over-hero" style={{"opacity":"0"}}>
         <a 
             href="#top" 
-            onClick={(e) => { 
-                e.preventDefault(); 
-                gsap.to(window, { duration: 1.2, scrollTo: 0, ease: 'power2.inOut' }); 
-            }}
-            className="cursor-pointer transition-all duration-300 hover:scale-110 active:scale-95 block"
+            className="nav-home block"
             aria-label="Volver al inicio"
         >
-            <AnimatedLogo id="nav-logo" src={assetUrl('logo-nav.png')} alt="Optivision W&M" className="h-20 md:h-24 lg:h-28" />
+            <AnimatedLogo id="nav-logo" src={assetUrl('logo-nav.png')} alt="Optivision W&M" className="h-16" />
         </a>
         <div className="flex-1"></div>
-        <div className="hidden md:flex items-center gap-6 xl:gap-10 font-outfit">
+        <div className="hidden lg:flex items-center gap-7 font-outfit">
             <a
-                href="https://wa.me/56992803368?text=Hola%2C%20quiero%20cotizar%20mi%20receta%20%C3%B3ptica."
+                href={WHATSAPP_URL}
                 target="_blank"
                 rel="noreferrer"
                 className="nav-link"
             >
-                Cotiza aquí ↓
+                Cotizar por WhatsApp
             </a>
-            <a href="#operativos" className="nav-link">Servicio empresas</a>
             <a href="#quienes-somos" className="nav-link">Nosotros</a>
             <a href="#optiland" className="nav-link">Tecnología</a>
-            <a href="#mision" className="nav-link">Misión</a>
             <a href="#contacto" className="nav-link">Contacto</a>
         </div>
-        <button id="menu-toggle" className="md:hidden flex flex-col gap-1.5 p-2 ml-4" aria-label="Menú">
+        <a href="#operativos" className="nav-link hero-enterprise"><span>Servicio para empresas</span><ArrowDown size={15} aria-hidden="true" /></a>
+        <button id="menu-toggle" className="lg:hidden flex flex-col gap-1.5 p-2 ml-4" aria-label="Menú" aria-expanded="false" aria-controls="mobile-menu">
             <span className="block w-5 h-[1.5px] bg-brand-text"></span>
             <span className="block w-5 h-[1.5px] bg-brand-text"></span>
             <span className="block w-3.5 h-[1.5px] bg-brand-text"></span>
@@ -473,19 +445,18 @@ export default function App() {
     </nav>
 
     {/* Menú móvil */}
-    <div id="mobile-menu" className="fixed inset-0 z-40 bg-brand-cream/95 backdrop-blur-lg flex flex-col items-center justify-center gap-8 text-xl font-outfit" style={{"opacity":"0","visibility":"hidden"}}>
+    <div id="mobile-menu" inert className="fixed inset-0 z-40 bg-brand-cream/95 backdrop-blur-lg flex flex-col items-center justify-center gap-8 text-xl font-outfit" style={{"opacity":"0","visibility":"hidden"}}>
         <a
-            href="https://wa.me/56992803368?text=Hola%2C%20quiero%20cotizar%20mi%20receta%20%C3%B3ptica."
+            href={WHATSAPP_URL}
             target="_blank"
             rel="noreferrer"
             className="text-brand-text hover:text-brand-gold transition-colors"
         >
-            Cotiza aquí ↓
+            Cotizar por WhatsApp
         </a>
         <a href="#operativos" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Servicio empresas</a>
         <a href="#quienes-somos" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Nosotros</a>
         <a href="#optiland" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Tecnología</a>
-        <a href="#mision" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Misión</a>
         <a href="#contacto" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Contacto</a>
     </div>
 
@@ -511,7 +482,9 @@ export default function App() {
             </div>
 
             <div id="hero-vignette" className="hero-vignette" aria-hidden="true" />
+            <h1 className="sr-only">Optivision W&M</h1>
 
+            <div id="hero-main" className="hero-main">
             <div
                 id="hero-logo-shell"
                 className={`hero-logo-shell${heroLogoReady ? ' is-ready' : ''}`}
@@ -525,7 +498,36 @@ export default function App() {
                     <HeroLogo3D onReady={() => setHeroLogoReady(true)} />
                 </Suspense>
             </div>
+            <div className="hero-copy">
+                <p className="hero-description">
+                    <span>Encuentra el marco que va contigo.</span>
+                    <span>Cristales para tu receta. Asesoría personal.</span>
+                </p>
+                <div className="hero-actions">
+                    <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-whatsapp whatsapp-flow hero-quote">
+                        <MessageCircle size={20} aria-hidden="true" /><span>Cotizar por WhatsApp</span>
+                    </a>
+                </div>
+            </div>
+            </div>
 
+            <div id="hero-wayfinding" className="hero-wayfinding">
+            <button
+                id="hero-scroll-hint"
+                className="hero-scroll-hint"
+                type="button"
+                onClick={() => gsap.to(window, {
+                    duration: prefersReducedMotion() ? 0 : .8,
+                    scrollTo: { y: '#quienes-somos', offsetY: document.getElementById('main-nav').offsetHeight + 16 },
+                    ease: 'power2.inOut', overwrite: 'auto'
+                })}
+            >
+                <span>Desliza para ver</span>
+                <ChevronDown size={19} strokeWidth={1.6} />
+            </button>
+            <a className="hero-location" href="https://maps.google.com/?q=Mall+Apumanque+Local+132,+Las+Condes" target="_blank" rel="noopener noreferrer">
+                <MapPin size={13} aria-hidden="true" />Mall Apumanque · Local 132, piso 2
+            </a>
             <div id="brand-carousel" className="hero-brand-carousel">
                 <div className="marquee-wrapper">
                     <div className="marquee-track">
@@ -541,38 +543,27 @@ export default function App() {
                     </div>
                 </div>
             </div>
-
-            <button
-                id="hero-scroll-hint"
-                className="hero-scroll-hint"
-                type="button"
-                onClick={() => gsap.to(window, {
-                    duration: .9,
-                    scrollTo: { y: window.innerHeight * .86 },
-                    ease: 'power3.inOut'
-                })}
-            >
-                <span>Desliza para ver</span>
-                <ChevronDown size={19} strokeWidth={1.6} />
-            </button>
+            </div>
 
         </div>
     </section>
 
 
-    {/* ===========================================================
-         SECCIÓN 2 — QUIÉNES SOMOS + CROSSFADE DE LENTES
-         Pantalla dividida: izquierda = imagen, derecha = texto.
-         Las imágenes hacen crossfade sincronizado con el scroll.
-         =========================================================== */}
-    {/* ===========================================================
-         SECCIÓN 2 — QUIÉNES SOMOS (Estática)
-         =========================================================== */}
-    <section id="quienes-somos" className="py-24 lg:py-32 bg-brand-cream relative">
-        <div className="max-w-7xl mx-auto px-6 lg:px-16 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            
-            {/* TEXTO (Aparece primero en móvil) */}
-            <div id="qs-text-container" className="order-1 lg:order-1 max-w-xl mx-auto lg:mx-0">
+    {/* SECCIÓN 2 — QUIÉNES SOMOS */}
+    <section id="quienes-somos" className="qs-section py-24 lg:py-32 bg-brand-cream relative">
+        <div id="qs-image-container" className="qs-backdrop" aria-hidden="true">
+            <img
+                src={assetUrl('modelo-optivision-integrada-v2.png')}
+                alt=""
+                className="qs-model-portrait"
+                width="1122"
+                height="1402"
+                loading="lazy"
+                decoding="async"
+            />
+        </div>
+        <div className="qs-content max-w-7xl mx-auto px-6 lg:px-16">
+            <div id="qs-text-container" className="qs-text">
                 <div className="flex items-center gap-3 mb-5">
                     <div className="divider"></div>
                     <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Conócenos</span>
@@ -581,29 +572,23 @@ export default function App() {
                     <WaveTitle text="Quiénes " /><WaveTitle text="Somos" className="text-brand-gold" delayOffset={8} />
                 </h2>
                 <p className="qs-copy mt-6 text-brand-muted leading-relaxed text-[.98rem]">
-                    Tus lentes no deberían obligarte a elegir entre <strong>ver con nitidez, sentirte cómodo y verte bien</strong>. En <strong>Optivisión W&M</strong> combinamos asesoría cercana, monturas cuidadosamente seleccionadas y cristales de laboratorios líderes para que encuentres unos lentes que realmente quieras usar, sin pagar sobreprecios innecesarios.
+                    Tus lentes te acompañan todo el día: al trabajar, leer y disfrutar lo que te gusta. En <strong>Optivisión W&M</strong> te ayudamos a elegir una montura cómoda y los cristales adecuados para tu receta, tu rutina y tu presupuesto. Con atención personal, desde la elección hasta el retiro.
                 </p>
                 <dl className="qs-proof-list" aria-label="Fortalezas de Optivisión W&M">
                     <div>
-                        <dt>2 días hábiles</dt>
-                        <dd>Listos para retiro</dd>
+                        <dt>Monofocales: 2 días hábiles</dt>
+                        <dd>Listos para retiro en tienda</dd>
                     </div>
                     <div>
-                        <dt>Cristales premium</dt>
-                        <dd>De laboratorios líderes</dd>
+                        <dt>Bifocales y multifocales: 5 días hábiles</dt>
+                        <dd>Listos para retiro en tienda</dd>
                     </div>
                     <div>
-                        <dt>Precio transparente</dt>
-                        <dd>Pagas por calidad real</dd>
+                        <dt>Cristales HOYA y Optiland</dt>
+                        <dd>Te orientamos según tu receta</dd>
                     </div>
                 </dl>
-            </div>
-
-            {/* LENTES 3D (Aparecen segundos en móvil) */}
-            <div id="qs-image-container" className="order-2 lg:order-2 flex justify-center items-center">
-                <Suspense fallback={<img src={assetUrl('glasses-qs.png')} alt="Lentes de sol Optivisión" className="qs-glasses-static" />}>
-                    <Sunglasses3D />
-                </Suspense>
+                <p className="delivery-note">Los plazos se cuentan desde la compra de tus lentes.</p>
             </div>
 
         </div>
@@ -861,9 +846,9 @@ export default function App() {
     {/* ===========================================================
          SECCIÓN 6 — CONTACTO
          =========================================================== */}
-    <section id="contacto" className="py-28 lg:py-36">
+    <section id="contacto" className="contact-section py-20 lg:py-28">
         <div className="max-w-6xl mx-auto px-6 lg:px-12">
-            <div id="ct-header" className="text-center mb-16" style={{"opacity":"0"}}>
+            <div id="ct-header" className="text-center mb-10 lg:mb-14">
                 <div className="flex items-center justify-center gap-3 mb-6">
                     <div className="divider"></div>
                     <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Encuéntranos</span>
@@ -876,7 +861,7 @@ export default function App() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                 {/* Mapa + Dirección */}
-                <div id="ct-left" style={{"opacity":"0","transform":"translateX(-30px)"}}>
+                <div id="ct-left">
                     <a href="https://maps.google.com/?q=Mall+Apumanque+Local+132,+Las+Condes" target="_blank" rel="noopener noreferrer" className="block relative h-72 rounded-xl overflow-hidden border border-brand-border group cursor-pointer shadow-sm hover:shadow-lg transition-shadow">
                         {/* Capa visual estética al pasar el mouse o tocar */}
                         <div className="absolute inset-0 bg-brand-text/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center backdrop-blur-[2px]">
@@ -892,6 +877,7 @@ export default function App() {
                             style={{"border":"0","pointerEvents":"none"}} 
                             allowFullScreen={true} 
                             loading="lazy" 
+                            title="Ubicación de Optivision W&M en Mall Apumanque"
                             referrerPolicy="no-referrer-when-downgrade">
                         </iframe>
                     </a>
@@ -907,9 +893,9 @@ export default function App() {
                 </div>
 
                 {/* Info + Horarios + WhatsApp */}
-                <div id="ct-right" className="space-y-5" style={{"opacity":"0","transform":"translateX(30px)"}}>
+                <div id="ct-right" className="space-y-5">
                     {/* Teléfono */}
-                    <div className="card p-5 flex items-center gap-4">
+                    <div className="card contact-phone p-5">
                         <div className="feature-icon">
                             <svg className="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="1.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                         </div>
@@ -921,7 +907,7 @@ export default function App() {
                     </div>
 
                     {/* Horarios */}
-                    <div className="card p-6">
+                    <div className="card contact-hours p-6">
                         <div className="flex items-center gap-3 mb-4">
                             <svg className="w-5 h-5 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <h3 className="font-outfit font-semibold text-brand-text text-sm">Horarios</h3>
@@ -941,9 +927,8 @@ export default function App() {
                     {/* WhatsApp — Botón llamativo */}
                     <div className="text-center pt-4">
                         {/* ✏️ Cambia el número en el href */}
-                        <a href="https://wa.me/56992803368" target="_blank" className="btn-whatsapp">
-                            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
-                            Escríbenos por WhatsApp
+                        <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-whatsapp whatsapp-flow">
+                            <MessageCircle size={20} aria-hidden="true" /><span>Escríbenos por WhatsApp</span>
                         </a>
                     </div>
                 </div>
@@ -1094,8 +1079,6 @@ export default function App() {
             <p className="text-brand-muted text-xs font-outfit">© 2026 Optivision W&M. Todos los derechos reservados.</p>
             <div className="flex items-center gap-4">
                 <a href="https://www.instagram.com/optivisionwm/?hl=es" target="_blank" rel="noopener noreferrer" className="text-brand-muted hover:text-brand-gold transition-colors" aria-label="Instagram"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
-                <a href="#" className="text-brand-muted hover:text-brand-gold transition-colors" aria-label="Facebook"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
-                <a href="#" className="text-brand-muted hover:text-brand-gold transition-colors" aria-label="TikTok"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></a>
             </div>
         </div>
     </footer>

@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "hero:verify": "node scripts/verify_hero.mjs",
+    "contact:verify": "node scripts/verify_contact.mjs",
+    "landing:verify": "node scripts/verify_landing.mjs",
     "technology:verify": "node scripts/verify_technology.mjs",
     "who:verify": "node scripts/verify_who_we_are.mjs",
     "lint": "oxlint",

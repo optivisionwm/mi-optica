@@ -118,23 +118,23 @@ export default function HeroLogo3D({
       const delta = Math.min(clock.getDelta(), 0.05);
       const pointer = pointerRef.current;
       const mobileIntensity = pointer.touch ? 0.52 : 1;
-      const targetTiltX = !reduceMotion && pointer.active ? -pointer.y * 0.13 * mobileIntensity : 0;
-      const targetTiltY = !reduceMotion && pointer.active ? pointer.x * 0.16 * mobileIntensity : 0;
+      const targetTiltX = !reduceMotion && pointer.active ? -pointer.y * 0.08 * mobileIntensity : 0;
+      const targetTiltY = !reduceMotion && pointer.active ? pointer.x * 0.11 * mobileIntensity : 0;
       const targetScale = !reduceMotion && pressedRef.current
         ? 1.018
-        : !reduceMotion && hoveredRef.current ? 1.04 : 1;
+        : !reduceMotion && hoveredRef.current ? 1.02 : 1;
       const targetDepth = !reduceMotion && pointer.active ? 1.07 : 1;
 
-      tiltX = THREE.MathUtils.damp(tiltX, targetTiltX, 8, delta);
-      tiltY = THREE.MathUtils.damp(tiltY, targetTiltY, 8, delta);
-      interactionScale = THREE.MathUtils.damp(interactionScale, targetScale, 9, delta);
+      tiltX = THREE.MathUtils.damp(tiltX, targetTiltX, 6, delta);
+      tiltY = THREE.MathUtils.damp(tiltY, targetTiltY, 6, delta);
+      interactionScale = THREE.MathUtils.damp(interactionScale, targetScale, 6, delta);
       depthScale = THREE.MathUtils.damp(depthScale, targetDepth, 8, delta);
       interactionRoot.rotation.set(tiltX, tiltY, 0);
       interactionRoot.scale.set(interactionScale, interactionScale, interactionScale * depthScale);
 
       if (!reduceMotion && spinStarted) {
         spinTime += delta;
-        spinRoot.rotation.y = Math.sin(spinTime * 0.28) * 0.42;
+        spinRoot.rotation.y = Math.sin(spinTime * 0.28) * 0.32;
       }
 
       lightX = THREE.MathUtils.damp(lightX, pointer.active ? pointer.x * 4 : 0, 7, delta);
@@ -142,7 +142,7 @@ export default function HeroLogo3D({
       pointerLight.position.set(lightX, lightY, 5);
       pointerLight.intensity = THREE.MathUtils.damp(
         pointerLight.intensity,
-        pointer.active && !reduceMotion ? 7 : 3.4,
+        pointer.active && !reduceMotion ? 4.6 : 3.4,
         7,
         delta,
       );
