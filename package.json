@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/prerender.mjs",
+    "seo:verify": "node --test scripts/verify_seo.mjs",
     "hero:verify": "node scripts/verify_hero.mjs",
     "contact:verify": "node scripts/verify_contact.mjs",
     "landing:verify": "node scripts/verify_landing.mjs",

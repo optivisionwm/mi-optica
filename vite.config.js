@@ -4,8 +4,9 @@ import { fileURLToPath } from 'node:url'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: './',
+  base: '/',
   plugins: [react()],
+  ssr: { noExternal: ['gsap'] },
   build: {
     rollupOptions: {
       input: {

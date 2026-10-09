@@ -479,11 +479,12 @@ export default function App() {
                     className="hero-photo-sharp"
                     src={assetUrl('persona-sosteniendo-lentes.jpg')}
                     alt="Persona sosteniendo un armazón de prueba durante un examen visual"
+                    fetchPriority="high"
                 />
             </div>
 
             <div id="hero-vignette" className="hero-vignette" aria-hidden="true" />
-            <h1 className="sr-only">Optivision W&M</h1>
+            <h1 className="sr-only">Óptica en Apumanque, Las Condes — Optivision W&M</h1>
 
             <div id="hero-main" className="hero-main">
             <div
@@ -575,7 +576,7 @@ export default function App() {
                 <div className="qs-copy">
                     <p className="qs-lead">Tus lentes te acompañan al trabajar, leer y disfrutar lo que te gusta.</p>
                     <p>
-                        En <strong>Optivisión W&M</strong> te ayudamos a elegir una montura cómoda y los cristales para tu receta, tu rutina y tu presupuesto. Te acompañamos con atención personal, desde la elección hasta el retiro.
+                        En <strong>Optivisión W&M</strong>, nuestra óptica en Mall Apumanque, Las Condes, te ayudamos a elegir una montura cómoda y los cristales para tu receta, tu rutina y tu presupuesto. Te acompañamos con atención personal, desde la elección hasta el retiro.
                     </p>
                 </div>
                 <dl className="qs-proof-list" aria-label="Fortalezas de Optivisión W&M">
