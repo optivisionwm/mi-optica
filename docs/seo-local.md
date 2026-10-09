@@ -10,7 +10,7 @@ La URL canónica actual es https://optivisionwm.vercel.app/. Si se conecta un do
 - Contenido React prerenderizado en el HTML durante el build; el navegador hidrata el mismo árbol. Sin servicios de render externos ni Chromium en el proceso de publicación.
 - robots.txt y sitemap.xml; no se incluyen anclas como páginas independientes.
 - Preview del modelo 3D marcado noindex; /index.html redirige a / mediante Vercel.
-- Etiqueta de verificación de Search Console para la propiedad de prefijo URL. Conservarla mientras se use esa cuenta.
+- Etiquetas de verificación de Search Console para la propiedad de prefijo URL, incluyendo la cuenta comercial optivisionwm@gmail.com. Conservar cada etiqueta mientras se use la cuenta correspondiente.
 
 ## Verificación
 
