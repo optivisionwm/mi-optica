@@ -43,6 +43,15 @@ test('structured data describes verified contact details without invented rating
   assert.equal(hoursFor('Sunday').opens, '11:00');
   assert.equal(business.aggregateRating, undefined);
   assert.equal(business.review, undefined);
+  // Ubicación del mall (no la de otro centro comercial) y datos confirmados por la óptica
+  assert.equal(business.address.postalCode, '7550000');
+  assert.ok(Math.abs(business.geo.latitude - -33.4116) < 0.002 && Math.abs(business.geo.longitude - -70.5694) < 0.002, 'geo must point to Mall Apumanque');
+  assert.match(business.paymentAccepted, /Efectivo/);
+  assert.match(business.paymentAccepted, /transferencia/i);
+  // Preguntas frecuentes visibles en la página y publicadas como FAQPage
+  const faq = nodes.find(node => node['@type'] === 'FAQPage');
+  assert.ok(faq && faq.mainEntity.length >= 5, 'FAQ structured data is missing');
+  for (const question of faq.mainEntity) assert.ok(home.includes(question.name), `FAQ question not visible: ${question.name}`);
 });
 
 test('robots and sitemap expose the canonical page to search engines', async () => {
@@ -55,6 +64,7 @@ test('robots and sitemap expose the canonical page to search engines', async () 
   assert.ok(sitemap.includes(`<loc>${origin}</loc>`));
   assert.ok(!sitemap.includes('#'));
   assert.ok(!sitemap.includes('logo-3d-preview'));
+  assert.match(sitemap, /<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/);
 });
 
 test('internal model preview is excluded from indexing', async () => {

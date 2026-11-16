@@ -12,6 +12,20 @@ La URL canónica actual es https://optivisionwm.vercel.app/. Si se conecta un do
 - Preview del modelo 3D marcado noindex; /index.html redirige a / mediante Vercel.
 - Etiquetas de verificación de Search Console para la propiedad de prefijo URL, incluyendo la cuenta comercial optivisionwm@gmail.com. Conservar cada etiqueta mientras se use la cuenta correspondiente.
 
+## Cambios del 16 de noviembre de 2026
+
+- Título: «Óptica en Apumanque, Las Condes · Lentes ópticos | Optivision W&M». Descripción orientada a «lentes ópticos con tu receta» en Mall Apumanque.
+- Datos estructurados Optician ampliados: dirección igual a la del Perfil de Empresa (Mall Apumanque, 2.º nivel, local 132, 7550000 Las Condes), coordenadas de Mall Apumanque, centro comercial que la contiene, medios de pago confirmados por la óptica, marcas y catálogo de tipos de cristal y operativos para empresas (sin precios ni calificaciones).
+- Preguntas frecuentes visibles en la página y publicadas como FAQPage; el prerenderizado las genera desde `src/faqs.js`, la misma lista que muestra la página.
+- sitemap.xml con `lastmod` e imágenes principales.
+- Imagen para compartir de 1200×630 (`og-optivision.jpg`).
+
+### Pendiente en el Perfil de Empresa (lo debe hacer el propietario)
+
+El 16 de noviembre de 2026 la ficha de Google Maps mostraba el marcador junto a IKEA y KidZania (Parque Arauco), con el texto «Se encuentra en: Coquinaria», aunque la dirección escrita es Mall Apumanque. Coordenadas del marcador: -33.4018, -70.5774; Mall Apumanque: -33.4116, -70.5694. Corregir en Perfil de Empresa → Editar perfil → Ubicación → ajustar el marcador dentro de Mall Apumanque, y revisar que el campo «Se encuentra en» indique Mall Apumanque. Hasta corregirlo, Google puede mostrar la óptica en búsquedas cercanas a Parque Arauco y enviar a los clientes al lugar equivocado.
+
+**Actualización 16 de noviembre de 2026:** con autorización del propietario se movió el marcador dentro de Mall Apumanque (junto al marcador del mall, entre Av. Apoquindo y Rosario Sur) desde la cuenta optivisionwm@gmail.com y se guardó. Google revisa los cambios de ubicación antes de publicarlos; comprobar en unos días que la ficha pública muestre el marcador en Apumanque y que «Se encuentra en» ya no diga Coquinaria. La verificación por video figuraba como rechazada («No se pudo obtener la verificación»); falta enviar una nueva grabación desde la tienda.
+
 ## Verificación
 
 Ejecutar `npm run build` y después `npm run seo:verify`. El segundo comando comprueba el HTML de distribución, la identidad comercial, el contenido sin JavaScript, los datos estructurados y los archivos de rastreo. Comprobar también la navegación y la consola del navegador después de cambios en la hidratación.

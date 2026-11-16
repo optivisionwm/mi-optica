@@ -157,6 +157,8 @@ export default function AnimatedLogo({ src, className = '', id, alt, type = 'nav
         <div 
             id={id} 
             className={`relative inline-block animated-logo-container group ${className}`} 
+            role="img"
+            aria-label={alt}
             style={{ 
                 aspectRatio: `${logoData.originalWidth} / ${logoData.originalHeight}`,
                 // Este div base NO captura hovers si tiene pointer-events-none desde CSS, 
@@ -178,7 +180,7 @@ export default function AnimatedLogo({ src, className = '', id, alt, type = 'nav
                                 // Evita que la imagen estirada se pixele
                                 objectFit: 'contain'
                             }}
-                            alt="Lentes"
+                            alt=""
                         />
                     );
                 }
@@ -199,7 +201,7 @@ export default function AnimatedLogo({ src, className = '', id, alt, type = 'nav
                             transitionDelay: `${index * 0.03}s`,
                             willChange: 'transform, filter'
                         }}
-                        alt="Letra"
+                        alt=""
                     />
                 );
             })}

@@ -75,7 +75,7 @@ try {
         width: document.documentElement.scrollWidth,
       };
     });
-    check(copy.paragraphs.length >= 2 && copy.paragraphs[1].startsWith('En Optivisión W&M'),
+    check(copy.paragraphs.length >= 2 && copy.paragraphs[1].startsWith('En Optivision W&M'),
       `${width}: company introduction must start a separate paragraph`);
     check(copy.brandLines === 1 && copy.whiteSpace === 'nowrap', `${width}: company name wraps`);
     check(copy.width <= width, `${width}: horizontal overflow`);

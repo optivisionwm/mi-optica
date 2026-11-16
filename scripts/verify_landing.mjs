@@ -36,7 +36,7 @@ try {
         menu: rect('#menu-toggle'),
         phone: document.querySelector('a[href^="tel:"]').getAttribute('href'),
         blankLinks: document.querySelectorAll('a[href="#"]').length,
-        delivery: document.querySelector('.qs-proof-list').textContent,
+        delivery: document.querySelector('.qs-stats').textContent.replace(/\s+/g, ' '),
         deliveryNote: document.querySelector('.delivery-note').textContent,
       };
     });
@@ -60,7 +60,7 @@ try {
     check(initial.whatsapp.startsWith('https://wa.me/56992803368'), `${name}: WhatsApp destination`);
     check(initial.enterprises === '#operativos', `${name}: enterprise destination`);
     check(initial.blankLinks === 0, `${name}: placeholder links`);
-    check(initial.delivery.includes('Monofocales: 2 días hábiles') && initial.delivery.includes('Bifocales y multifocales: 5 días hábiles') && initial.deliveryNote.includes('desde la compra'), `${name}: delivery terms`);
+    check(/Monofocales\s*2\s*días hábiles/.test(initial.delivery) && /Bifocales y multifocales\s*5\s*días hábiles/.test(initial.delivery) && initial.deliveryNote.includes('desde la compra'), `${name}: delivery terms`);
     await page.screenshot({ path: path.join(output, `${name}-hero.png`) });
     const canvas = page.locator('.hero-logo-canvas canvas');
     await canvas.evaluate(el => { el.style.background = 'rgb(1, 2, 3)'; });
@@ -115,7 +115,8 @@ try {
     await canvas.evaluate(el => { el.style.background = ''; });
     if (!reduced) {
       const lens = await page.locator('#hero-viewport').evaluate(el => ({ x: parseFloat(el.style.getPropertyValue('--lens-x')), y: parseFloat(el.style.getPropertyValue('--lens-y')) }));
-      await page.evaluate(() => window.scrollTo(0, innerHeight * .55));
+      // A mitad de su vuelo el logo ya está chico y sobre el lente, aún visible.
+      await page.evaluate(() => window.scrollTo(0, document.getElementById('hero-viewport').offsetHeight * .36));
       await page.waitForTimeout(1400);
       const entry = await page.locator('#hero-logo-shell').evaluate(el => {
         const r = el.getBoundingClientRect();
@@ -124,18 +125,15 @@ try {
       check(Math.hypot(entry.x - lens.x, entry.y - lens.y) < Math.hypot(initial.logo.left + initial.logo.width / 2 - lens.x, initial.logo.top + initial.logo.height / 2 - lens.y) * .18, `${name}: logo must enter the lens opening`);
       check(entry.width < initial.logo.width * .2 && entry.opacity > .5, `${name}: logo must shrink before fading out`);
       await page.screenshot({ path: path.join(output, `${name}-lens-entry.png`) });
-      await page.evaluate(() => window.scrollTo(0, innerHeight * .82));
-      await page.waitForTimeout(1200);
-      const portal = await page.locator('#hero-viewport').evaluate(el => {
-        const style = getComputedStyle(el);
-        const x = parseFloat(style.getPropertyValue('--lens-x')), y = parseFloat(style.getPropertyValue('--lens-y'));
-        return {
-          radius: parseFloat(style.getPropertyValue('--portal-radius')),
-          farthestCorner: Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)),
-          navOverHero: document.getElementById('main-nav').classList.contains('is-over-hero'),
-        };
-      });
-      check(portal.radius > portal.farthestCorner && !portal.navOverHero, `${name}: arriving section must not be obscured by the portal`);
+      // Al terminar el recorrido el lente cubrió todo y la portada se entrega a "Quiénes Somos".
+      await page.evaluate(() => window.scrollTo(0, document.getElementById('hero-viewport').offsetHeight));
+      await page.waitForTimeout(1400);
+      const portal = await page.evaluate(() => ({
+        heroHidden: getComputedStyle(document.getElementById('hero-viewport')).visibility === 'hidden',
+        sectionTop: Math.round(document.getElementById('quienes-somos').getBoundingClientRect().top),
+        navOverHero: document.getElementById('main-nav').classList.contains('is-over-hero'),
+      }));
+      check(portal.heroHidden && Math.abs(portal.sectionTop) <= 2 && !portal.navOverHero, `${name}: arriving section must not be obscured by the portal`);
       await page.evaluate(() => window.scrollTo(0, 0));
       await page.waitForTimeout(1400);
       const restored = await page.locator('#hero-logo-shell').boundingBox();
@@ -175,7 +173,7 @@ try {
     await page.evaluate(() => window.scrollTo(0, document.querySelector('#quienes-somos').offsetTop - 96));
     await page.waitForTimeout(850);
     await page.screenshot({ path: path.join(output, `${name}-delivery.png`) });
-    const portrait = page.locator('.qs-model-portrait');
+    const portrait = page.locator('#quienes-somos .qs-model');
     await portrait.scrollIntoViewIfNeeded();
     await portrait.evaluate(img => img.decode());
     await page.waitForTimeout(750);

@@ -28,11 +28,13 @@ async function inspectViewport(browser, name, viewport) {
   page.on('pageerror', (error) => pageErrors.push(error.message));
 
   await page.goto(url, { waitUntil: 'networkidle' });
-  await page.locator('#preloader.hidden').waitFor({ timeout: 15_000 });
-  await page.locator('.hero-logo-canvas.is-rendered').waitFor({ timeout: 15_000 });
+  await page.locator('#preloader.hidden').waitFor({ state: 'attached', timeout: 15_000 });
+  // El logo 3D se muestra en escritorio y móvil.
+  const expects3D = true;
+  if (expects3D) await page.locator('.hero-logo-canvas.is-rendered').waitFor({ timeout: 15_000 });
   await page.waitForTimeout(500);
 
-  const initial = await page.evaluate(() => {
+  const initial = await page.evaluate((expects3D) => {
     const hero = document.querySelector('#hero');
     const viewportElement = document.querySelector('#hero-viewport');
     const logo = document.querySelector('#hero-logo-shell');
@@ -58,21 +60,22 @@ async function inspectViewport(browser, name, viewport) {
       brandLogoCount: brands.querySelectorAll('img').length,
       brandsBelowHint: brandsRect.top > hintRect.bottom && brandsRect.bottom <= window.innerHeight,
       horizontalOverflowClipped: ['hidden', 'clip'].includes(getComputedStyle(document.body).overflowX),
-      logoTouchAction: getComputedStyle(document.querySelector('.hero-logo-canvas')).touchAction,
-      canvasSize: {
+      logoTouchAction: expects3D ? getComputedStyle(document.querySelector('.hero-logo-canvas')).touchAction : null,
+      canvasSize: expects3D ? {
         width: document.querySelector('.hero-logo-canvas canvas').getBoundingClientRect().width,
         height: document.querySelector('.hero-logo-canvas canvas').getBoundingClientRect().height,
-      },
+      } : null,
+      staticLogoVisible: !expects3D && document.querySelector('.hero-logo-fallback').getBoundingClientRect().width > 0,
     };
-  });
+  }, expects3D);
 
-  const canvas = page.locator('.hero-logo-canvas canvas');
+  const canvas = expects3D ? page.locator('.hero-logo-canvas canvas') : page.locator('.hero-logo-fallback');
   const firstLogoFrame = await canvas.screenshot();
   const firstBrandTransform = await page.locator('.marquee-track').evaluate((element) => getComputedStyle(element).transform);
   await page.waitForTimeout(900);
   const secondLogoFrame = await canvas.screenshot();
   const secondBrandTransform = await page.locator('.marquee-track').evaluate((element) => getComputedStyle(element).transform);
-  const logoRotates = hash(firstLogoFrame) !== hash(secondLogoFrame);
+  const logoRotates = expects3D ? hash(firstLogoFrame) !== hash(secondLogoFrame) : 'imagen fija en móvil';
   const brandsMove = firstBrandTransform !== secondBrandTransform;
 
   await page.screenshot({ path: path.join(outputDirectory, `${name}-initial.png`), fullPage: false });

@@ -83,7 +83,7 @@ async function inspectViewport(browser, name, viewport) {
   await page.locator('#operativos').scrollIntoViewIfNeeded();
   await page.waitForTimeout(1_400);
   const operativosState = await page.locator('#operativos').evaluate((section) => {
-    const cta = section.querySelector('a.btn-primary');
+    const cta = section.querySelector('a.ops-cta');
     return {
       painCopyPresent: section.textContent.includes('traslados')
         && section.textContent.includes('horas fuera del puesto'),

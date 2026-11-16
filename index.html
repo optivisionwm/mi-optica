@@ -5,26 +5,39 @@
     <link rel="icon" type="image/png" href="%BASE_URL%favicon.png" />
     <link rel="apple-touch-icon" href="%BASE_URL%favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Óptica en Apumanque, Las Condes | Optivision W&amp;M</title>
-    <meta name="description" content="Cotiza tus lentes ópticos y marcos en Optivision W&amp;M, Mall Apumanque, Las Condes. Cristales monofocales y multifocales. Asesoría personal por WhatsApp." />
+    <title>Óptica en Apumanque, Las Condes · Lentes ópticos | Optivision W&amp;M</title>
+    <meta name="description" content="Lentes ópticos con tu receta en Mall Apumanque, Las Condes. Cristales HOYA y Optiland monofocales y multifocales, listos en 2 a 5 días. Cotiza por WhatsApp." />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="google-site-verification" content="PDrENVioKKWn3QVK7wSHlTYvBQAgJ_XpM9-qyQ0jZSg" />
     <meta name="google-site-verification" content="FGn68J5FnXRJaZf018jdO5w0AvUjuvaeReRik8RQurw" />
     <meta name="theme-color" content="#FAF8F4" />
+    <script>
+      // Tema antes de pintar: lo elegido por la persona o, si no eligió, el del sistema.
+      (function () {
+        try {
+          var saved = localStorage.getItem('theme');
+          var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.dataset.theme = theme;
+          if (theme === 'dark') document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0f2219');
+        } catch (error) {}
+      })();
+    </script>
     <link rel="canonical" href="https://optivisionwm.vercel.app/" />
-    <link rel="preload" as="image" href="%BASE_URL%assets/persona-sosteniendo-lentes.jpg" fetchpriority="high" />
+    <link rel="preload" as="image" href="%BASE_URL%assets/persona-sosteniendo-lentes.webp" imagesrcset="%BASE_URL%assets/persona-sosteniendo-lentes-1280.webp 1280w, %BASE_URL%assets/persona-sosteniendo-lentes.webp 2400w" imagesizes="100vw" fetchpriority="high" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="es_CL" />
     <meta property="og:site_name" content="Optivision W&amp;M" />
-    <meta property="og:title" content="Óptica en Apumanque, Las Condes | Optivision W&amp;M" />
+    <meta property="og:title" content="Óptica en Apumanque, Las Condes · Lentes ópticos | Optivision W&amp;M" />
     <meta property="og:description" content="Marcos y cristales para tu receta, con asesoría personal. Visítanos en Mall Apumanque, local 132, piso 2, o cotiza por WhatsApp." />
     <meta property="og:url" content="https://optivisionwm.vercel.app/" />
-    <meta property="og:image" content="https://optivisionwm.vercel.app/assets/logo-user.png" />
+    <meta property="og:image" content="https://optivisionwm.vercel.app/assets/og-optivision.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Optivision W&amp;M, óptica en Mall Apumanque, Las Condes" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Óptica en Apumanque, Las Condes | Optivision W&amp;M" />
+    <meta name="twitter:title" content="Óptica en Apumanque, Las Condes · Lentes ópticos | Optivision W&amp;M" />
     <meta name="twitter:description" content="Cotiza marcos y cristales para tu receta. Mall Apumanque, local 132, piso 2. Asesoría personal por WhatsApp." />
-    <meta name="twitter:image" content="https://optivisionwm.vercel.app/assets/logo-user.png" />
+    <meta name="twitter:image" content="https://optivisionwm.vercel.app/assets/og-optivision.jpg" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -36,17 +49,40 @@
             "url": "https://optivisionwm.vercel.app/",
             "description": "Óptica en Mall Apumanque, Las Condes. Marcos y cristales monofocales, bifocales, multifocales y ocupacionales, con asesoría personal.",
             "logo": "https://optivisionwm.vercel.app/assets/logo-user.png",
-            "image": "https://optivisionwm.vercel.app/assets/persona-sosteniendo-lentes.jpg",
+            "image": [
+              "https://optivisionwm.vercel.app/assets/og-optivision.jpg",
+              "https://optivisionwm.vercel.app/assets/persona-sosteniendo-lentes.jpg",
+              "https://optivisionwm.vercel.app/assets/modelo-optivision-integrada-v2.webp"
+            ],
             "telephone": "+56992803368",
             "email": "optivisionwm@gmail.com",
             "address": {
               "@type": "PostalAddress",
-              "streetAddress": "Mall Apumanque, local 132, piso 2",
+              "streetAddress": "Mall Apumanque, 2.º nivel, local 132",
               "addressLocality": "Las Condes",
               "addressRegion": "Región Metropolitana",
+              "postalCode": "7550000",
               "addressCountry": "CL"
             },
-            "hasMap": "https://www.google.com/maps/place/OptivisionW%26M/data=!4m2!3m1!1s0x0:0x4dc94297887a9b9b",
+            "geo": {
+              "@type": "GeoCoordinates",
+              "latitude": -33.4116499,
+              "longitude": -70.5694294
+            },
+            "containedInPlace": {
+              "@type": "ShoppingCenter",
+              "name": "Mall Apumanque",
+              "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Las Condes",
+                "addressCountry": "CL"
+              }
+            },
+            "hasMap": "https://www.google.com/maps?cid=5605084429836524443",
+            "areaServed": {
+              "@type": "City",
+              "name": "Santiago"
+            },
             "openingHoursSpecification": [
               {
                 "@type": "OpeningHoursSpecification",
@@ -56,7 +92,13 @@
               },
               {
                 "@type": "OpeningHoursSpecification",
-                "dayOfWeek": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                "dayOfWeek": [
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday"
+                ],
                 "opens": "10:00",
                 "closes": "20:00"
               },
@@ -67,7 +109,89 @@
                 "closes": "20:00"
               }
             ],
-            "sameAs": ["https://www.instagram.com/optivisionwm/"]
+            "paymentAccepted": "Efectivo, tarjeta de débito, tarjeta de crédito, cuotas, transferencia bancaria",
+            "currenciesAccepted": "CLP",
+            "knowsLanguage": "es",
+            "brand": [
+              {
+                "@type": "Brand",
+                "name": "Ray-Ban"
+              },
+              {
+                "@type": "Brand",
+                "name": "Vogue"
+              },
+              {
+                "@type": "Brand",
+                "name": "Karün"
+              },
+              {
+                "@type": "Brand",
+                "name": "Saturday"
+              },
+              {
+                "@type": "Brand",
+                "name": "Veltom"
+              },
+              {
+                "@type": "Brand",
+                "name": "HOYA"
+              },
+              {
+                "@type": "Brand",
+                "name": "Optiland"
+              }
+            ],
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "Lentes ópticos y servicios",
+              "itemListElement": [
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Product",
+                    "name": "Lentes monofocales",
+                    "description": "Cristales de una graduación para lejos o cerca, listos en 2 días hábiles."
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Product",
+                    "name": "Lentes bifocales",
+                    "description": "Cristales con zona de lejos y de cerca, listos en 5 días hábiles."
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Product",
+                    "name": "Lentes multifocales",
+                    "description": "Visión de lejos, intermedia y cerca en un mismo cristal, listos en 5 días hábiles."
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Product",
+                    "name": "Lentes ocupacionales",
+                    "description": "Cristales para distancias intermedias y cercanas, pensados para la oficina."
+                  }
+                },
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Operativos oftalmológicos para empresas",
+                    "description": "Atención óptica en las dependencias de la empresa, coordinada con RR.HH."
+                  }
+                }
+              ]
+            },
+            "sameAs": [
+              "https://www.instagram.com/optivisionwm/",
+              "https://www.google.com/maps?cid=5605084429836524443"
+            ]
           },
           {
             "@type": "WebSite",
@@ -75,7 +199,9 @@
             "url": "https://optivisionwm.vercel.app/",
             "name": "Optivision W&M",
             "inLanguage": "es-CL",
-            "publisher": {"@id": "https://optivisionwm.vercel.app/#optica"}
+            "publisher": {
+              "@id": "https://optivisionwm.vercel.app/#optica"
+            }
           },
           {
             "@type": "WebPage",
@@ -83,8 +209,12 @@
             "url": "https://optivisionwm.vercel.app/",
             "name": "Óptica en Apumanque, Las Condes | Optivision W&M",
             "inLanguage": "es-CL",
-            "isPartOf": {"@id": "https://optivisionwm.vercel.app/#website"},
-            "mainEntity": {"@id": "https://optivisionwm.vercel.app/#optica"}
+            "isPartOf": {
+              "@id": "https://optivisionwm.vercel.app/#website"
+            },
+            "mainEntity": {
+              "@id": "https://optivisionwm.vercel.app/#optica"
+            }
           }
         ]
       }

@@ -1,10 +1,15 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
-import { ArrowDown, ArrowUpRight, ChevronDown, MapPin, MessageCircle } from 'lucide-react';
+import { ArrowDown, ArrowUpRight, ChevronDown, MapPin, MessageCircle, Pause, Play, Copy, Check, Moon, Sun } from 'lucide-react';
 import WaveTitle from './components/WaveTitle';
 import AnimatedLogo from './components/AnimatedLogo';
+import Coleccion from './components/Coleccion';
+import ComoFunciona from './components/ComoFunciona';
+import PreguntasFrecuentes from './components/PreguntasFrecuentes';
+import SiteFooter from './components/SiteFooter';
+import { GOOGLE_RATING, GOOGLE_REVIEWS_URL } from './site';
 
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
@@ -42,7 +47,33 @@ const LENS_TYPES = [
     },
 ];
 
-const OPERATIVOS_GMAIL_URL = `https://mail.google.com/mail/?view=cm&fs=1&to=optivisionwm@gmail.com&su=${encodeURIComponent('SOLICITUD DE INFORMACIÓN: OPERATIVO OFTALMOLÓGICO')}&body=${encodeURIComponent(`Hola Optivision W&M:
+const REVIEWS = [
+    { author: 'Andreina P.', text: 'Son excelentes 7 de 7. Muchas gracias. Muy educados y amables en la atención al público, lindos Marcos y buena calidad.' },
+    { author: 'Jonathan S.', text: 'Muy buena atención, muy recomendados, y lo mejor precio y calidad, gracias por su profesionalismo' },
+    { author: 'mildred t.', text: 'Muy buena atención, calidad en sus productos y los precios muy muy buenos, súper recomendados no duden en visitarlos 🥳' },
+    { author: 'Carlos B.', text: 'Excelente Atención y Servicio Profesional!! Los Recomiendo' },
+    { author: 'roneldis c.', text: 'Excelente atención , todo de muy buena calidad!! Súper recomendados!!!' },
+];
+
+const FILTER_EXPERIENCES = [
+    {
+        selector: '.photo-scroll-container',
+        labels: ['Cristal transparente', 'Activando con luz solar', 'Oscurecimiento en curso', 'Filtro fotocromático activo'],
+    },
+    {
+        selector: '.photo-scroll-container-2',
+        labels: ['Sin filtro', 'Luz azul detectada', 'Filtro Blue Cut activo', 'Exposición reducida'],
+    },
+    {
+        selector: '.photo-scroll-container-3',
+        labels: ['Sin filtro UV', 'Radiación UV detectada', 'Filtro UV activo', 'Protección solar activa'],
+    },
+];
+
+// En Windows sin app de correo configurada un mailto: no abre nada,
+// así que se usa Gmail web y se ofrece copiar la dirección.
+const OPERATIVOS_EMAIL = 'optivisionwm@gmail.com';
+const OPERATIVOS_MAIL_URL = `https://mail.google.com/mail/?view=cm&fs=1&to=${OPERATIVOS_EMAIL}&su=${encodeURIComponent('SOLICITUD DE INFORMACIÓN: OPERATIVO OFTALMOLÓGICO')}&body=${encodeURIComponent(`Hola Optivision W&M:
 
 Quisiera solicitar información sobre un operativo oftalmológico para nuestra empresa.
 
@@ -53,39 +84,239 @@ Fecha tentativa:
 
 Quedo atento/a. Gracias.`)}`;
 
+function StarRow({ className = 'mb-3' }) {
+    return (
+        <div className={`flex gap-1 text-brand-gold ${className}`} aria-label="5 de 5 estrellas" role="img">
+            {[0, 1, 2, 3, 4].map((i) => (
+                <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            ))}
+        </div>
+    );
+}
+
+// Aplica el tema (claro u oscuro) a toda la página y avisa a quien deba redibujarse.
+function applyTheme(next, { persist }) {
+    const root = document.documentElement;
+    root.classList.add('theme-switching');
+    root.dataset.theme = next;
+    if (persist) {
+        try { localStorage.setItem('theme', next); } catch { /* sin almacenamiento */ }
+    }
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', next === 'dark' ? '#0f2219' : '#FAF8F4');
+    window.dispatchEvent(new CustomEvent('themechange', { detail: next }));
+    window.setTimeout(() => root.classList.remove('theme-switching'), 450);
+}
+
+// Scroll suave a un ancla, dejando la URL y el foco en el destino.
+function scrollToHash(hash, { push = true } = {}) {
+    const nav = document.getElementById('main-nav');
+    const navHeight = nav ? nav.offsetHeight : 0;
+    const target = hash === '#top' || hash === '' ? 0 : document.querySelector(hash);
+    if (target === null) return;
+    gsap.to(window, {
+        duration: prefersReducedMotion() ? 0 : .75,
+        // "Quiénes Somos" se alcanza justo cuando el lente terminó de abrirse.
+        scrollTo: { y: target, offsetY: target === 0 || hash === '#quienes-somos' ? 0 : navHeight + 20 },
+        ease: 'power2.inOut',
+        overwrite: 'auto',
+        onComplete: () => {
+            if (target && target.getAttribute('tabindex') !== null) target.focus({ preventScroll: true });
+        },
+    });
+    if (push) {
+        const url = hash === '#top' ? window.location.pathname + window.location.search : hash;
+        if (url !== window.location.hash) history.pushState(null, '', url);
+    }
+}
+
 export default function App() {
   const [heroLogoReady, setHeroLogoReady] = useState(false);
+  const [use3DLogo, setUse3DLogo] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterImagesRequested, setFilterImagesRequested] = useState(false);
+  const [reviewsPaused, setReviewsPaused] = useState(false);
+  const [emailCopied, setEmailCopied] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
+  const [theme, setTheme] = useState('light');
 
-  useEffect(() => { 
+  // Modo noche: lee el tema aplicado antes de pintar y sigue al sistema si la persona no eligió.
+  useEffect(() => {
+    const root = document.documentElement;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTheme(root.dataset.theme === 'dark' ? 'dark' : 'light');
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const onSystemChange = (event) => {
+      let saved = null;
+      try { saved = localStorage.getItem('theme'); } catch { /* sin almacenamiento */ }
+      if (saved) return;
+      applyTheme(event.matches ? 'dark' : 'light', { persist: false });
+      setTheme(event.matches ? 'dark' : 'light');
+    };
+    media.addEventListener('change', onSystemChange);
+    return () => media.removeEventListener('change', onSystemChange);
+  }, []);
+  const toggleTheme = useCallback(() => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(next, { persist: true });
+    setTheme(next);
+  }, []);
+  const copyEmail = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(OPERATIVOS_EMAIL);
+    } catch {
+      const field = document.createElement('textarea');
+      field.value = OPERATIVOS_EMAIL;
+      document.body.appendChild(field);
+      field.select();
+      document.execCommand('copy');
+      field.remove();
+    }
+    setEmailCopied(true);
+    setTimeout(() => setEmailCopied(false), 2200);
+  }, []);
+  const filterOpenerRef = useRef(null);
+
+  // Logo 3D en todos los dispositivos; solo se usa la imagen fija con "ahorro de datos" o conexión 2G/3G.
+  useEffect(() => {
+    const connection = navigator.connection;
+    const slowConnection = Boolean(connection && (connection.saveData || /(^|-)(2g|3g)$/.test(connection.effectiveType || '')));
+    if (!slowConnection) setUse3DLogo(true);
+  }, []);
+
+  // Menú móvil
+  useEffect(() => {
+    document.getElementById('main-nav')?.classList.toggle('menu-is-open', menuOpen);
+    if (!menuOpen) return undefined;
+    const onKey = (event) => { if (event.key === 'Escape') setMenuOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [menuOpen]);
+
+  const openFilterModal = useCallback((event) => {
+    filterOpenerRef.current = event?.currentTarget ?? document.activeElement;
+    setFilterImagesRequested(true);
+    setFilterOpen(true);
+  }, []);
+  const closeFilterModal = useCallback(() => setFilterOpen(false), []);
+
+  // Modal de filtros: animación, scroll interno, Escape y foco.
+  useEffect(() => {
+    const filterModal = document.getElementById('filter-modal');
+    if (!filterModal) return undefined;
+
+    if (!filterOpen) {
+        if (!filterModal.classList.contains('active')) return undefined;
+        const tween = gsap.to(filterModal, {
+            opacity: 0, duration: prefersReducedMotion() ? 0 : .2, ease: 'power1.out', overwrite: true,
+            onComplete: () => {
+                filterModal.classList.remove('active');
+                document.body.style.overflow = '';
+                filterModal.scrollTop = 0;
+                filterModal.querySelectorAll('[data-filter-overlay], [data-filter-rays]').forEach((element) => {
+                    element.style.opacity = '';
+                    element.style.transform = '';
+                });
+                filterModal.querySelectorAll('.photo-progress-fill').forEach((element) => {
+                    element.style.width = '0%';
+                });
+                filterOpenerRef.current?.focus?.({ preventScroll: true });
+            },
+        });
+        return () => tween.kill();
+    }
+
+    let triggers = [];
+    filterModal.scrollTop = 0;
+    filterModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    gsap.fromTo(filterModal, { opacity: 0 }, {
+        opacity: 1,
+        duration: prefersReducedMotion() ? 0 : .25,
+        ease: 'power3.out',
+        overwrite: true,
+    });
+    document.getElementById('close-filter-modal')?.focus({ preventScroll: true });
+
+    const initTimer = setTimeout(() => {
+        FILTER_EXPERIENCES.forEach(({ selector, labels }) => {
+            const container = filterModal.querySelector(selector);
+            if (!container) return;
+            const overlay = container.querySelector('[data-filter-overlay]');
+            const rays = container.querySelector('[data-filter-rays]');
+            const progressBar = container.querySelector('.photo-progress-fill');
+            const label = container.querySelector('.photo-label');
+
+            const timeline = gsap.timeline({
+                scrollTrigger: {
+                    trigger: container,
+                    scroller: filterModal,
+                    start: 'top top',
+                    end: 'bottom bottom',
+                    scrub: prefersReducedMotion() ? true : 0.65,
+                    onUpdate: (self) => {
+                        const p = self.progress;
+                        if (progressBar) progressBar.style.width = `${p * 100}%`;
+                        if (label) {
+                            if (p < 0.12) label.textContent = labels[0];
+                            else if (p < 0.42) label.textContent = labels[1];
+                            else if (p < 0.76) label.textContent = labels[2];
+                            else label.textContent = labels[3];
+                        }
+                    }
+                }
+            });
+            if (rays) {
+                timeline
+                    .fromTo(rays, { opacity: 0, xPercent: 12 }, { opacity: 0.9, xPercent: 0, duration: 0.42, ease: 'power1.out' }, 0)
+                    .to(rays, { opacity: 0.12, xPercent: -8, duration: 0.58, ease: 'power1.inOut' }, 0.42);
+            }
+            if (overlay) timeline.to(overlay, { opacity: 1, duration: 0.78, ease: 'power1.inOut' }, 0.2);
+            triggers.push(timeline.scrollTrigger);
+        });
+        ScrollTrigger.refresh();
+    }, 150);
+
+    // Escape cierra; Tab queda dentro del modal.
+    const onKey = (event) => {
+        if (event.key === 'Escape') { setFilterOpen(false); return; }
+        if (event.key !== 'Tab') return;
+        const focusables = [...filterModal.querySelectorAll('button, a[href]')].filter((el) => el.offsetParent !== null || el.id === 'close-filter-modal');
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+
+    return () => {
+        clearTimeout(initTimer);
+        document.removeEventListener('keydown', onKey);
+        triggers.forEach((trigger) => trigger.kill());
+        triggers = [];
+    };
+  }, [filterOpen]);
+
+  // Botón atrás/adelante del navegador entre secciones
+  useEffect(() => {
+    const onPopState = () => scrollToHash(window.location.hash || '#top', { push: false });
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  useEffect(() => {
     let sectionMotion;
+    let preloaderFallback;
+    let lensGL = null;
+    let disposed = false;
     // Wait a tick for DOM to be ready
     const setupTimer = setTimeout(() => {
         try {
-            
+
         gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
         ScrollTrigger.config({ ignoreMobileResize: false });
         const reduceMotion = prefersReducedMotion();
-
-        // --- Menú móvil ---
-        const menuToggle = document.getElementById('menu-toggle');
-        const mobileMenu = document.getElementById('mobile-menu');
-        let menuOpen = false;
-        menuToggle.addEventListener('click', () => {
-            menuOpen = !menuOpen;
-            mobileMenu.style.opacity    = menuOpen ? '1' : '0';
-            mobileMenu.style.visibility = menuOpen ? 'visible' : 'hidden';
-            menuToggle.setAttribute('aria-expanded', String(menuOpen));
-            mobileMenu.inert = !menuOpen;
-            document.getElementById('main-nav').classList.toggle('menu-is-open', menuOpen);
-        });
-        function closeMobileMenu() {
-            menuOpen = false;
-            mobileMenu.style.opacity = '0';
-            mobileMenu.style.visibility = 'hidden';
-            menuToggle.setAttribute('aria-expanded', 'false');
-            mobileMenu.inert = true;
-            document.getElementById('main-nav').classList.remove('menu-is-open');
-        }
 
         // --- Forzar inicio de página al recargar ---
         if ('scrollRestoration' in history) {
@@ -94,9 +325,14 @@ export default function App() {
         window.addEventListener('beforeunload', () => {
             window.scrollTo(0, 0);
         });
-        
+
         // --- Preloader + Intro ---
+        // Se retira apenas carga la foto principal (no espera las imágenes del resto de la página).
+        let preloaderDone = false;
         const runPreloader = () => {
+            if (preloaderDone) return;
+            preloaderDone = true;
+            clearTimeout(preloaderFallback);
             setTimeout(() => {
                 window.scrollTo(0, 0);
                 ScrollTrigger.refresh();
@@ -111,19 +347,21 @@ export default function App() {
             });
             // La animación de entrada del logo se elimina porque entraba en conflicto con el ScrollTrigger al recargar (F5)
             // El preloader ya cumple la función de revelar la pantalla con suavidad.
-            gsap.fromTo(['#hero-main', '#hero-wayfinding', '#main-nav'],
+            // La entrada anima a los hijos de #hero-wayfinding; el scroll anima al contenedor.
+            gsap.fromTo(['#hero-main', '#hero-wayfinding > *', '#main-nav'],
                 { opacity: 0 },
                 { opacity: 1, duration: reduceMotion ? 0 : .65, delay: reduceMotion ? 0 : .25, stagger: reduceMotion ? 0 : .06, ease: 'power2.out' }
             );
         };
 
-        if (document.readyState === 'complete') {
+        const heroPhotoForPreloader = document.getElementById('hero-photo-sharp');
+        if (!heroPhotoForPreloader || (heroPhotoForPreloader.complete && heroPhotoForPreloader.naturalWidth > 0)) {
             runPreloader();
         } else {
-            window.addEventListener('load', runPreloader);
+            heroPhotoForPreloader.addEventListener('load', runPreloader, { once: true });
+            heroPhotoForPreloader.addEventListener('error', runPreloader, { once: true });
+            preloaderFallback = setTimeout(runPreloader, 3000);
         }
-
-
         // ============================================================
         // 1. HERO OPTICO: el scroll atraviesa el visor derecho.
         // ============================================================
@@ -132,10 +370,32 @@ export default function App() {
         const heroPhoto = document.getElementById('hero-photo-sharp');
         const heroMain = document.getElementById('hero-main');
         const heroLogo = document.getElementById('hero-logo-shell');
+        const lensPortal = document.getElementById('lens-portal');
+        const lensPortalInner = document.getElementById('lens-portal-inner');
+        const lensPortalClone = document.getElementById('lens-portal-clone');
         const lensGeometry = {
             x: window.innerWidth * 0.7,
             y: window.innerHeight * 0.64,
+            r: 80,
             maxRadius: window.innerWidth
+        };
+
+        // Copia visual de "Quiénes Somos" para verla (borrosa) dentro del lente.
+        const buildPortalClone = () => {
+            const source = document.getElementById('quienes-somos');
+            if (!source || !lensPortalClone) return;
+            const clone = source.cloneNode(true);
+            clone.removeAttribute('id');
+            clone.querySelectorAll('svg [id]').forEach((el) => {
+                const next = `${el.id}-portal`;
+                clone.querySelectorAll(`[href="#${el.id}"]`).forEach((ref) => ref.setAttribute('href', `#${next}`));
+                el.id = next;
+            });
+            clone.querySelectorAll('[id]:not([id$="-portal"])').forEach((el) => el.removeAttribute('id'));
+            clone.querySelectorAll('img').forEach((img) => { img.loading = 'eager'; });
+            clone.style.opacity = '';
+            clone.querySelectorAll('[style]').forEach((el) => { el.style.opacity = ''; el.style.transform = ''; });
+            lensPortalClone.replaceChildren(clone);
         };
 
         const updateLensGeometry = () => {
@@ -154,15 +414,20 @@ export default function App() {
             const offsetX = (photoWidth - renderedWidth) * objectPositionX;
             const offsetY = photoHeight - renderedHeight;
 
-            lensGeometry.x = heroPhoto.offsetLeft + offsetX + naturalWidth * 0.703 * renderScale;
-            lensGeometry.y = heroPhoto.offsetTop + offsetY + naturalHeight * 0.643 * renderScale;
+            // Centro de la abertura del aro derecho, medido sobre la foto original (3225 × 2148).
+            lensGeometry.x = heroPhoto.offsetLeft + offsetX + naturalWidth * 0.689 * renderScale;
+            lensGeometry.y = heroPhoto.offsetTop + offsetY + naturalHeight * 0.612 * renderScale;
+            // Radio interior del aro derecho del probador (medido sobre la foto).
+            lensGeometry.r = Math.max(28, renderedWidth * 0.096);
             lensGeometry.maxRadius = Math.hypot(
                 Math.max(lensGeometry.x, viewportRect.width - lensGeometry.x),
                 Math.max(lensGeometry.y, viewportRect.height - lensGeometry.y)
-            ) + 80;
+            ) + 40;
 
             heroViewport.style.setProperty('--lens-x', `${lensGeometry.x}px`);
             heroViewport.style.setProperty('--lens-y', `${lensGeometry.y}px`);
+            heroViewport.style.setProperty('--portal-w', `${viewportRect.width}px`);
+            if (lensPortal) lensPortal.style.setProperty('--lens-r', `${lensGeometry.r}px`);
             gsap.set(heroPhotoStage, { transformOrigin: `${lensGeometry.x}px ${lensGeometry.y}px` });
         };
 
@@ -174,51 +439,210 @@ export default function App() {
             }, { once: true });
         }
 
-        const heroScrollDistance = () => document.getElementById('hero').offsetHeight;
+        const heroScrollDistance = () => heroViewport.offsetHeight;
         if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.getElementById('hero').classList.add('is-scroll-scene');
+            buildPortalClone();
+
+            // El portal crece con transform (GPU); el contenido se contra-escala
+            // para quedar alineado con la pantalla mientras el círculo se abre.
+            // El círculo sigue al aro mientras la foto avanza (escala de la foto)
+            // y luego se abre extra hasta cubrir la pantalla.
+            const PHOTO_END_SCALE = 2.4;
+            const portal = { extra: 1 };
+            // Efectos del cristal (WebGL): lupa, curvatura alrededor del aro, suavizado y brillo.
+            const glass = { lensK: .55, warp: 0, soft: 1.6, rim: 1, pull: 0 };
+            const lensCanvas = document.getElementById('lens-gl');
+            const heroVignette = document.getElementById('hero-vignette');
+
+            // Rectángulo donde el navegador dibuja la foto (object-fit: cover; object-position: 50% 100%).
+            const photoDrawRect = () => {
+                const box = heroPhoto.getBoundingClientRect();
+                const viewportBox = heroViewport.getBoundingClientRect();
+                const nw = heroPhoto.naturalWidth || 3225;
+                const nh = heroPhoto.naturalHeight || 2148;
+                const fit = Math.max(box.width / nw, box.height / nh);
+                const w = nw * fit;
+                const h = nh * fit;
+                return {
+                    x: box.left - viewportBox.left + (box.width - w) * 0.5,
+                    y: box.top - viewportBox.top + (box.height - h),
+                    w,
+                    h,
+                };
+            };
+
+            const applyPortal = () => {
+                const s = Number(gsap.getProperty(heroPhotoStage, 'scale')) * portal.extra;
+                lensPortal.style.transform = `translateZ(0) scale(${s})`;
+                lensPortalInner.style.transform = `scale(${1 / s})`;
+                if (lensGL && heroViewport.style.visibility !== 'hidden') {
+                    const reveal = Number(gsap.getProperty(lensPortal, 'opacity'));
+                    // Hueco en la viñeta oscura para que el cristal se vea limpio.
+                    heroVignette.style.setProperty('--hole-r', `${lensGeometry.r * s * reveal}px`);
+                    lensGL.render({
+                        photoRect: photoDrawRect(),
+                        cx: lensGeometry.x,
+                        cy: lensGeometry.y,
+                        radius: lensGeometry.r * s,
+                        reveal,
+                        lensK: glass.lensK,
+                        warp: glass.warp,
+                        soft: glass.soft,
+                        rim: glass.rim,
+                        pull: glass.pull,
+                    });
+                }
+            };
+
+            // Captura de "Quiénes Somos" para verla a través del cristal.
+            const snapshotQs = async (domToCanvas) => {
+                const section = document.getElementById('quienes-somos');
+                const width = section.offsetWidth;
+                const height = Math.min(section.offsetHeight, heroViewport.offsetHeight);
+                const canvas = await domToCanvas(section, {
+                    width,
+                    height,
+                    scale: Math.min(window.devicePixelRatio || 1, 1.5),
+                    backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--surface').trim() || '#FAF8F4',
+                    style: { marginTop: '0px' },
+                });
+                return { canvas, width, height };
+            };
+
+            const startLensGL = async () => {
+                const connection = navigator.connection;
+                const slowConnection = Boolean(connection && (connection.saveData || /(^|-)(2g|3g)$/.test(connection.effectiveType || '')));
+                if (!lensCanvas || window.matchMedia('(max-width: 640px)').matches || slowConnection) return;
+                try {
+                    const [{ createLensGL }, { domToCanvas }] = await Promise.all([
+                        import('./lensGL.js'),
+                        import('modern-screenshot'),
+                    ]);
+                    if (!heroPhoto.complete) await new Promise((resolve) => heroPhoto.addEventListener('load', resolve, { once: true }));
+                    await document.fonts?.ready;
+                    const shot = await snapshotQs(domToCanvas);
+                    if (disposed) return;
+                    lensGL = createLensGL(lensCanvas, heroPhoto);
+                    lensGL.resize(heroViewport.clientWidth, heroViewport.clientHeight);
+                    lensGL.setQs(shot.canvas, shot.width, shot.height);
+                    heroViewport.classList.add('has-lens-gl');
+                    applyPortal();
+
+                    // Al cambiar el tamaño de la ventana se rehace la captura.
+                    let resizeTimer;
+                    const onResize = () => {
+                        clearTimeout(resizeTimer);
+                        resizeTimer = setTimeout(async () => {
+                            if (!lensGL) return;
+                            lensGL.resize(heroViewport.clientWidth, heroViewport.clientHeight);
+                            const next = await snapshotQs(domToCanvas);
+                            lensGL?.setQs(next.canvas, next.width, next.height);
+                            applyPortal();
+                        }, 300);
+                    };
+                    window.addEventListener('resize', onResize);
+                    // Al cambiar a modo noche o día, se vuelve a capturar la sección con los colores nuevos.
+                    window.addEventListener('themechange', () => {
+                        window.setTimeout(async () => {
+                            if (!lensGL) return;
+                            const next = await snapshotQs(domToCanvas);
+                            lensGL?.setQs(next.canvas, next.width, next.height);
+                            applyPortal();
+                        }, 500);
+                    });
+                } catch (error) {
+                    // Sin WebGL o sin captura: queda el portal en HTML.
+                    console.warn('Cristal WebGL no disponible:', error);
+                    heroViewport.classList.remove('has-lens-gl');
+                }
+            };
+            const idle = window.requestIdleCallback || ((callback) => setTimeout(callback, 700));
+            idle(() => { startLensGL(); });
+            const portalExtraScale = () => Math.max(1, lensGeometry.maxRadius / lensGeometry.r / PHOTO_END_SCALE);
+
+            // Centro de un elemento medido dentro del hero (sin contar transforms).
+            const centerInHero = (element) => {
+                let x = element.offsetWidth / 2;
+                let y = element.offsetHeight / 2;
+                let node = element;
+                while (node && node !== heroViewport) {
+                    x += node.offsetLeft;
+                    y += node.offsetTop;
+                    node = node.offsetParent;
+                }
+                return node ? { x, y } : null;
+            };
+            const intoLens = (element, duration, rotation) => ({
+                x: () => { const c = centerInHero(element); return c ? lensGeometry.x - c.x : 0; },
+                y: () => { const c = centerInHero(element); return c ? lensGeometry.y - c.y : 0; },
+                scale: .03,
+                rotation,
+                duration,
+                ease: 'power2.in',
+            });
+            const heroCopy = heroMain.querySelector('.hero-copy');
+            const heroScrollHint = document.getElementById('hero-scroll-hint');
+            const heroLocation = heroViewport.querySelector('.hero-location');
+            const brandCarousel = document.getElementById('brand-carousel');
+
             const heroTimeline = gsap.timeline({
                 scrollTrigger: {
                     trigger: '#hero',
                     start: 'top top',
                     end: () => `+=${heroScrollDistance()}`,
-                    scrub: 0.85,
-                    pin: heroViewport,
-                    pinSpacing: false,
-                    anticipatePin: 1,
+                    scrub: 0.6,
                     invalidateOnRefresh: true,
-                    onRefreshInit: updateLensGeometry,
+                    onRefreshInit: () => { updateLensGeometry(); buildPortalClone(); },
                     onUpdate: (self) => {
                         if (self.progress > .005) return;
-                        gsap.set('#hero-wayfinding', {
-                            opacity: 1,
-                            y: 0,
-                        });
+                        gsap.set('#hero-wayfinding', { opacity: 1 });
                     },
-                }
+                },
+                onUpdate: applyPortal,
             });
 
             heroTimeline
-                .fromTo('#hero-wayfinding',
-                    { opacity:1, y:0 },
-                    { opacity:0, y:6, duration:.2, ease:'power2.out', immediateRender:false },
-                    0
-                )
-                .to('.hero-copy', { opacity:0, y:8, duration:.22, ease:'power2.out' }, .02)
+                // Todo el inicio cae al agujero: textos, botón, ubicación y marcas.
+                .to(heroCopy, intoLens(heroCopy, .4, 28), .03)
+                .to(heroCopy, { opacity:0, duration:.08, ease:'power1.in' }, .36)
+                .to(heroScrollHint, intoLens(heroScrollHint, .42, -30), .05)
+                .to(heroLocation, intoLens(heroLocation, .42, 34), .07)
+                .to(brandCarousel, intoLens(brandCarousel, .45, -22), .08)
+                .to('#hero-wayfinding', { opacity:0, duration:.08, ease:'power1.in' }, .45)
+                // La foto se arremolina hacia el lente.
+                .fromTo(glass, { pull: 0 }, { pull: 1, duration: .5, ease: 'power2.in', immediateRender:false }, .1)
                 .to(heroLogo, {
                     x: () => lensGeometry.x - heroMain.offsetLeft - heroLogo.offsetLeft - heroLogo.offsetWidth / 2,
                     y: () => lensGeometry.y - heroMain.offsetTop - heroLogo.offsetTop - heroLogo.offsetHeight / 2,
-                    scale: .045,
-                    duration: .52,
+                    scale: .04,
+                    duration: .42,
                     ease: 'power2.inOut',
-                }, .06)
-                .to(heroLogo, { opacity:0, duration:.12, ease:'power1.in' }, .54)
-                .to(heroPhotoStage, { scale:4.2, duration:1, ease:'none' }, 0)
-                .to('#hero-vignette', { opacity:.82, duration:.38, ease:'none' }, 0)
-                .to(heroViewport, {
-                    '--portal-radius': () => `${lensGeometry.maxRadius}px`,
-                    duration:.27,
-                    ease:'power2.inOut'
-                }, .58);
+                }, .04)
+                .to(heroLogo, { opacity:0, duration:.1, ease:'power1.in' }, .38)
+                // La foto avanza hacia el lente derecho.
+                .to(heroPhotoStage, { scale:PHOTO_END_SCALE, duration:1, ease:'power1.in' }, 0)
+                .to('#hero-vignette', { opacity:.9, duration:.45, ease:'none' }, 0)
+                // El "agujero": aparece la siguiente sección dentro del lente...
+                .fromTo(lensPortal, { opacity:0 }, { opacity:1, duration:.14, ease:'none', immediateRender:false }, .04)
+                // Cristal: la foto se curva hacia el aro y la lupa se endereza al abrirse.
+                .fromTo(glass, { warp: 0 }, { warp: .55, duration: .36, ease: 'sine.inOut', immediateRender:false }, .08)
+                .to(glass, { warp: 0, duration: .32, ease: 'sine.in' }, .56)
+                .fromTo(glass, { lensK: .55 }, { lensK: 0, duration: .5, ease: 'sine.inOut', immediateRender:false }, .4)
+                .fromTo(glass, { soft: 1.6 }, { soft: 0, duration: .45, ease: 'sine.out', immediateRender:false }, .35)
+                .fromTo(glass, { rim: 1 }, { rim: 0, duration: .25, ease: 'none', immediateRender:false }, .7)
+                // ...y se abre hasta cubrir la pantalla.
+                .fromTo(portal, { extra: 1 }, {
+                    extra: portalExtraScale,
+                    duration: .52,
+                    ease: 'power2.in',
+                    immediateRender: false,
+                }, .42)
+                .to('.lens-portal-edge', { opacity:0, duration:.25, ease:'none' }, .62)
+                .to('.lens-portal-blur', { opacity:0, duration:.3, ease:'power1.out' }, .66)
+                // Cuando el portal cubre todo, se entrega a la sección real (idéntica debajo).
+                .set(heroViewport, { autoAlpha: 0 }, .995);
+            applyPortal();
         }
 
 
@@ -229,11 +653,12 @@ export default function App() {
             const nav = document.getElementById('main-nav');
             if (!nav) return;
             if (heroViewport) heroViewport.style.pointerEvents = passedHero ? 'none' : 'auto';
+            setPastHero(passedHero);
             nav.classList.toggle('is-over-hero', !passedHero);
-            nav.style.background = passedHero ? 'rgba(250, 248, 244, 0.88)' : 'transparent';
+            nav.style.background = passedHero ? 'var(--nav-bg)' : 'transparent';
             nav.style.backdropFilter = passedHero ? 'blur(24px)' : 'none';
             nav.style.WebkitBackdropFilter = passedHero ? 'blur(24px)' : 'none';
-            nav.style.borderBottom = passedHero ? '1px solid rgba(26, 26, 26, 0.08)' : 'none';
+            nav.style.borderBottom = passedHero ? '1px solid var(--nav-border)' : 'none';
             nav.style.boxShadow = passedHero ? '0 10px 36px rgba(0, 0, 0, 0.05)' : 'none';
         };
 
@@ -250,7 +675,7 @@ export default function App() {
         // ============================================================
         // 4. Reveal content once, with no residual horizontal offsets.
         // ============================================================
-        const revealTargets = '#qs-text-container, #qs-image-container, #optiland-header, #opt-card-2, #opt-card-3, #opt-types, #operativos-content, #mision-header, #mis-1, #mis-2, #mis-3, #mis-quote, #ct-header, #ct-left, #ct-right';
+        const revealTargets = '.reveal, #optiland-header, #opt-card-2, #opt-card-3, #opt-types, #operativos-content, #mision-header, #mis-1, #mis-2, #mis-3, #mis-quote, #ct-header, #ct-left, #ct-right';
         sectionMotion = gsap.matchMedia();
         sectionMotion.add({ reduce: '(prefers-reduced-motion: reduce)', animate: '(prefers-reduced-motion: no-preference)' }, (context) => {
             gsap.utils.toArray(revealTargets).forEach((element) => {
@@ -269,144 +694,35 @@ export default function App() {
 
 
         // ============================================================
-        // SMOOTH SCROLL — Links de navegación
+        // SMOOTH SCROLL — Links de navegación (actualiza la URL)
         // ============================================================
         document.querySelectorAll('a[href^="#"]').forEach(a => {
             a.addEventListener('click', function(e) {
-                e.preventDefault(); closeMobileMenu();
+                e.preventDefault();
+                setMenuOpen(false);
                 const href = this.getAttribute('href');
                 if (href === '#') return;
-                const t = href === '#top' ? 0 : document.querySelector(href);
-                const navHeight = document.getElementById('main-nav').offsetHeight;
-                if (t !== null) gsap.to(window, { duration: prefersReducedMotion() ? 0 : .75, scrollTo:{y:t,offsetY:navHeight + 20}, ease:'power2.inOut', overwrite: 'auto' });
+                scrollToHash(href);
             });
         });
-
-
-        // ============================================================
-        // MODAL — PRUEBA DE FOTOCROMÁTICOS
-        // ============================================================
-        const filterModal = document.getElementById('filter-modal');
-        const openBtn = document.getElementById('open-filter-modal');
-        const closeBtn = document.getElementById('close-filter-modal');
-        let modalScrollTriggers = [];
-
-        function openFilterModal() {
-            filterModal.scrollTop = 0;
-            filterModal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            gsap.fromTo(filterModal, 
-                { opacity: 0 },
-                {
-                    opacity: 1,
-                    duration: prefersReducedMotion() ? 0 : .25,
-                    ease: 'power3.out',
-                    onComplete: () => gsap.set(filterModal, { clearProps: 'transform' }),
-                }
-            );
-            setTimeout(initPhotoScrollTrigger, 150);
-        }
-
-        function closeFilterModal() {
-            gsap.to(filterModal, {
-                opacity: 0, duration: prefersReducedMotion() ? 0 : .2, ease: 'power1.out', overwrite: true,
-                onComplete: () => {
-                    filterModal.classList.remove('active');
-                    document.body.style.overflow = '';
-                    filterModal.scrollTop = 0;
-                    modalScrollTriggers.forEach((trigger) => trigger.kill());
-                    modalScrollTriggers = [];
-                    filterModal.querySelectorAll('[data-filter-overlay], [data-filter-rays]').forEach((element) => {
-                        element.style.opacity = '';
-                        element.style.transform = '';
-                    });
-                    filterModal.querySelectorAll('.photo-progress-fill').forEach((element) => {
-                        element.style.width = '0%';
-                    });
-                }
-            });
-        }
-
-        openBtn.addEventListener('click', openFilterModal);
-        closeBtn.addEventListener('click', closeFilterModal);
-
-        function initPhotoScrollTrigger() {
-            modalScrollTriggers.forEach((trigger) => trigger.kill());
-            modalScrollTriggers = [];
-
-            const experiences = [
-                {
-                    selector: '.photo-scroll-container',
-                    labels: ['Cristal transparente', 'Activando con luz solar', 'Oscurecimiento en curso', 'Filtro fotocromático activo'],
-                },
-                {
-                    selector: '.photo-scroll-container-2',
-                    labels: ['Sin filtro', 'Luz azul detectada', 'Filtro Blue Cut activo', 'Exposición reducida'],
-                },
-                {
-                    selector: '.photo-scroll-container-3',
-                    labels: ['Sin filtro UV', 'Radiación UV detectada', 'Filtro UV activo', 'Protección solar activa'],
-                },
-            ];
-
-            experiences.forEach(({ selector, labels }) => {
-                const container = filterModal.querySelector(selector);
-                if (!container) return;
-                const overlay = container.querySelector('[data-filter-overlay]');
-                const rays = container.querySelector('[data-filter-rays]');
-                const progressBar = container.querySelector('.photo-progress-fill');
-                const label = container.querySelector('.photo-label');
-
-                const timeline = gsap.timeline({
-                    scrollTrigger: {
-                        trigger: container,
-                        scroller: filterModal,
-                        start: 'top top',
-                        end: 'bottom bottom',
-                        scrub: prefersReducedMotion() ? true : 0.65,
-                        onUpdate: (self) => {
-                            const p = self.progress;
-                            if (progressBar) progressBar.style.width = `${p * 100}%`;
-                            if (label) {
-                                if (p < 0.12) label.textContent = labels[0];
-                                else if (p < 0.42) label.textContent = labels[1];
-                                else if (p < 0.76) label.textContent = labels[2];
-                                else label.textContent = labels[3];
-                            }
-                        }
-                    }
-                });
-                if (rays) {
-                    timeline
-                        .fromTo(rays, { opacity: 0, xPercent: 12 }, { opacity: 0.9, xPercent: 0, duration: 0.42, ease: 'power1.out' }, 0)
-                        .to(rays, { opacity: 0.12, xPercent: -8, duration: 0.58, ease: 'power1.inOut' }, 0.42);
-                }
-                if (overlay) timeline.to(overlay, { opacity: 1, duration: 0.78, ease: 'power1.inOut' }, 0.2);
-                modalScrollTriggers.push(timeline.scrollTrigger);
-            });
-
-            ScrollTrigger.refresh();
-        }
 
         } catch(e) {
             console.error(e);
         }
     }, 100);
 
-    const closeMobileMenu = () => {
-      const el = document.getElementById('mobile-menu');
-      if(el) {
-        el.style.opacity = '0';
-        el.style.visibility = 'hidden';
-      }
+    return () => {
+        disposed = true;
+        clearTimeout(setupTimer);
+        clearTimeout(preloaderFallback);
+        sectionMotion?.revert();
+        lensGL?.dispose();
     };
-    window.closeMobileMenu = closeMobileMenu;
-    return () => { clearTimeout(setupTimer); sectionMotion?.revert(); };
   }, []);
 
   return (
     <>
-      
+    <a href="#contenido" className="skip-link">Saltar al contenido</a>
 
     {/* ===== PRELOADER ===== */}
     <div id="preloader">
@@ -415,7 +731,7 @@ export default function App() {
     </div>
 
     {/* ===== NAV (nuevo logo fijo a la izquierda) ===== */}
-    <nav id="main-nav" className="is-over-hero" style={{"opacity":"0"}}>
+    <nav id="main-nav" className="is-over-hero">
         <a 
             href="#top" 
             className="nav-home block"
@@ -430,6 +746,7 @@ export default function App() {
                 target="_blank"
                 rel="noreferrer"
                 className="nav-link"
+                data-cta="nav"
             >
                 Cotizar por WhatsApp
             </a>
@@ -438,7 +755,24 @@ export default function App() {
             <a href="#contacto" className="nav-link">Contacto</a>
         </div>
         <a href="#operativos" className="nav-link hero-enterprise"><span>Servicio para empresas</span><ArrowDown size={15} aria-hidden="true" /></a>
-        <button id="menu-toggle" className="lg:hidden flex flex-col gap-1.5 p-2 ml-4" aria-label="Menú" aria-expanded="false" aria-controls="mobile-menu">
+        <button
+            type="button"
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Activar modo día' : 'Activar modo noche'}
+            title={theme === 'dark' ? 'Modo día' : 'Modo noche'}
+        >
+            {theme === 'dark' ? <Sun size={19} strokeWidth={1.7} aria-hidden="true" /> : <Moon size={19} strokeWidth={1.7} aria-hidden="true" />}
+        </button>
+        <button
+            id="menu-toggle"
+            type="button"
+            className="lg:hidden flex flex-col justify-center gap-1.5 p-3 ml-2 min-w-11 min-h-11"
+            aria-label={menuOpen ? 'Cerrar menú' : 'Menú'}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            onClick={() => setMenuOpen((open) => !open)}
+        >
             <span className="block w-5 h-[1.5px] bg-brand-text"></span>
             <span className="block w-5 h-[1.5px] bg-brand-text"></span>
             <span className="block w-3.5 h-[1.5px] bg-brand-text"></span>
@@ -446,20 +780,30 @@ export default function App() {
     </nav>
 
     {/* Menú móvil */}
-    <div id="mobile-menu" inert className="fixed inset-0 z-40 bg-brand-cream/95 backdrop-blur-lg flex flex-col items-center justify-center gap-8 text-xl font-outfit" style={{"opacity":"0","visibility":"hidden"}}>
+    <div
+        id="mobile-menu"
+        inert={!menuOpen}
+        className="fixed inset-0 z-40 bg-brand-cream/95 backdrop-blur-lg flex flex-col items-center justify-center gap-4 text-xl font-outfit"
+        style={{ opacity: menuOpen ? 1 : 0, visibility: menuOpen ? 'visible' : 'hidden' }}
+    >
         <a
             href={WHATSAPP_URL}
             target="_blank"
             rel="noreferrer"
-            className="text-brand-text hover:text-brand-gold transition-colors"
+            className="mobile-menu-link"
+            data-cta="menu"
+            onClick={() => setMenuOpen(false)}
         >
             Cotizar por WhatsApp
         </a>
-        <a href="#operativos" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Servicio empresas</a>
-        <a href="#quienes-somos" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Nosotros</a>
-        <a href="#optiland" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Tecnología</a>
-        <a href="#contacto" className="text-brand-text hover:text-brand-gold transition-colors" onClick={() => {}}>Contacto</a>
+        <a href="#operativos" className="mobile-menu-link">Servicio empresas</a>
+        <a href="#quienes-somos" className="mobile-menu-link">Nosotros</a>
+        <a href="#preguntas" className="mobile-menu-link">Preguntas frecuentes</a>
+        <a href="#optiland" className="mobile-menu-link">Tecnología</a>
+        <a href="#contacto" className="mobile-menu-link">Contacto</a>
     </div>
+
+    <main id="contenido" tabIndex={-1} className="outline-none">
 
 
     {/* ===========================================================
@@ -471,19 +815,29 @@ export default function App() {
             <div id="hero-photo-stage" className="hero-photo-stage">
                 <img
                     className="hero-photo-blur"
-                    src={assetUrl('persona-sosteniendo-lentes.jpg')}
+                    src={assetUrl('persona-sosteniendo-lentes-1280.webp')}
                     alt=""
                 />
                 <img
                     id="hero-photo-sharp"
                     className="hero-photo-sharp"
-                    src={assetUrl('persona-sosteniendo-lentes.jpg')}
+                    src={assetUrl('persona-sosteniendo-lentes.webp')}
+                    srcSet={`${assetUrl('persona-sosteniendo-lentes-1280.webp')} 1280w, ${assetUrl('persona-sosteniendo-lentes.webp')} 2400w`}
+                    sizes="100vw"
                     alt="Persona sosteniendo un armazón de prueba durante un examen visual"
                     fetchPriority="high"
                 />
             </div>
 
+            <canvas id="lens-gl" className="lens-gl" aria-hidden="true" />
             <div id="hero-vignette" className="hero-vignette" aria-hidden="true" />
+            <div id="lens-portal" className="lens-portal" aria-hidden="true">
+                <div id="lens-portal-inner" className="lens-portal-inner" inert>
+                    <div id="lens-portal-clone" className="lens-portal-clone" />
+                    <div className="lens-portal-blur" />
+                </div>
+                <div className="lens-portal-edge" />
+            </div>
             <h1 className="sr-only">Óptica en Apumanque, Las Condes — Optivision W&M</h1>
 
             <div id="hero-main" className="hero-main">
@@ -493,11 +847,13 @@ export default function App() {
             >
                 <img
                     className="hero-logo-fallback"
-                    src={assetUrl('logo-user.png')}
+                    src={assetUrl('logo-hero.webp')}
+                    width="602"
+                    height="255"
                     alt="Optivision W&M"
                 />
                 <Suspense fallback={null}>
-                    <HeroLogo3D onReady={() => setHeroLogoReady(true)} />
+                    {use3DLogo && <HeroLogo3D onReady={() => setHeroLogoReady(true)} />}
                 </Suspense>
             </div>
             <div className="hero-copy">
@@ -506,7 +862,7 @@ export default function App() {
                     <span>Cristales para tu receta. Asesoría personal.</span>
                 </p>
                 <div className="hero-actions">
-                    <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-whatsapp whatsapp-flow hero-quote">
+                    <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-whatsapp whatsapp-flow hero-quote" data-cta="hero">
                         <MessageCircle size={20} aria-hidden="true" /><span>Cotizar por WhatsApp</span>
                     </a>
                 </div>
@@ -519,9 +875,9 @@ export default function App() {
                 className="hero-scroll-hint"
                 type="button"
                 onClick={() => gsap.to(window, {
-                    duration: prefersReducedMotion() ? 0 : .8,
-                    scrollTo: { y: '#quienes-somos', offsetY: document.getElementById('main-nav').offsetHeight + 16 },
-                    ease: 'power2.inOut', overwrite: 'auto'
+                    duration: prefersReducedMotion() ? 0 : 1.6,
+                    scrollTo: { y: '#quienes-somos', offsetY: 0 },
+                    ease: 'power1.inOut', overwrite: 'auto'
                 })}
             >
                 <span>Desliza para ver</span>
@@ -552,52 +908,83 @@ export default function App() {
 
 
     {/* SECCIÓN 2 — QUIÉNES SOMOS */}
-    <section id="quienes-somos" className="qs-section py-24 lg:py-32 bg-brand-cream relative">
-        <div id="qs-image-container" className="qs-backdrop" aria-hidden="true">
-            <img
-                src={assetUrl('modelo-optivision-integrada-v2.png')}
-                alt=""
-                className="qs-model-portrait"
-                width="1122"
-                height="1402"
-                loading="lazy"
-                decoding="async"
-            />
-        </div>
-        <div className="qs-content max-w-7xl mx-auto px-6 lg:px-16">
+    <section id="quienes-somos" className="qs-section bg-brand-cream relative">
+        {/* Aros con marcas como el dial del probador, eco de la portada */}
+        <svg className="qs-dial" viewBox="0 0 600 600" aria-hidden="true">
+            <circle cx="300" cy="300" r="292" className="qs-dial-line" />
+            <circle cx="300" cy="300" r="268" className="qs-dial-ticks" />
+            <circle cx="300" cy="300" r="268" className="qs-dial-ticks qs-dial-ticks--major" />
+            <circle cx="300" cy="300" r="214" className="qs-dial-line qs-dial-line--soft" />
+        </svg>
+
+        <div className="qs-layout">
             <div id="qs-text-container" className="qs-text">
-                <div className="flex items-center gap-3 mb-5">
+                <div className="qs-eyebrow">
                     <div className="divider"></div>
-                    <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Conócenos</span>
+                    <span>Conócenos</span>
                 </div>
-                <h2 className="wave-title text-3xl md:text-4xl lg:text-5xl font-outfit font-bold text-brand-text leading-tight">
+                <h2 className="wave-title qs-title font-outfit font-bold text-brand-text">
                     <WaveTitle text="Quiénes " /><WaveTitle text="Somos" className="text-brand-gold" delayOffset={8} />
                 </h2>
                 <div className="qs-copy">
                     <p className="qs-lead">Tus lentes te acompañan al trabajar, leer y disfrutar lo que te gusta.</p>
                     <p>
-                        En <strong>Optivisión W&M</strong>, nuestra óptica en Mall Apumanque, Las Condes, te ayudamos a elegir una montura cómoda y los cristales para tu receta, tu rutina y tu presupuesto. Te acompañamos con atención personal, desde la elección hasta el retiro.
+                        En <strong>Optivision W&M</strong>, nuestra óptica en Mall Apumanque, Las Condes, te ayudamos a elegir una montura cómoda y los cristales para tu receta, tu rutina y tu presupuesto. Te acompañamos con atención personal, desde la elección hasta el retiro.
                     </p>
                 </div>
-                <dl className="qs-proof-list" aria-label="Fortalezas de Optivisión W&M">
-                    <div>
-                        <dt>Monofocales: <span className="qs-proof-time">2 días hábiles</span></dt>
-                        <dd>Listos para retiro en tienda</dd>
+                <dl className="qs-stats" aria-label="Plazos de entrega de Optivision W&M">
+                    <div className="qs-stat">
+                        <dt>Monofocales</dt>
+                        <dd className="qs-stat-value"><span className="qs-stat-num">2</span><span className="qs-stat-unit">días hábiles</span></dd>
+                        <dd className="qs-stat-note">Listos para retiro en tienda</dd>
                     </div>
-                    <div>
-                        <dt>Bifocales y multifocales: <span className="qs-proof-time">5 días hábiles</span></dt>
-                        <dd>Listos para retiro en tienda</dd>
-                    </div>
-                    <div>
-                        <dt>Cristales HOYA y Optiland</dt>
-                        <dd>Te orientamos según tu receta</dd>
+                    <div className="qs-stat">
+                        <dt>Bifocales y multifocales</dt>
+                        <dd className="qs-stat-value"><span className="qs-stat-num">5</span><span className="qs-stat-unit">días hábiles</span></dd>
+                        <dd className="qs-stat-note">Listos para retiro en tienda</dd>
                     </div>
                 </dl>
                 <p className="delivery-note">Los plazos se cuentan desde la compra de tus lentes.</p>
             </div>
 
+            <figure id="qs-image-container" className="qs-figure">
+                <div className="qs-arch">
+                    <img
+                        src={assetUrl('modelo-optivision-integrada-v2.webp')}
+                        alt="Asesora de Optivision W&M con polera verde sosteniendo unos lentes en la óptica"
+                        className="qs-model"
+                        width="1122"
+                        height="1402"
+                        decoding="async"
+                    />
+                </div>
+                <div className="qs-seal" aria-hidden="true">
+                    <svg viewBox="0 0 120 120" className="qs-seal-ring">
+                        <defs>
+                            <path id="qs-seal-path" d="M60,60 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0" />
+                        </defs>
+                        <text>
+                            <textPath href="#qs-seal-path" startOffset="0" textLength="279" lengthAdjust="spacing">ÓPTICA · MALL APUMANQUE · LAS CONDES ·</textPath>
+                        </text>
+                    </svg>
+                    <img src={assetUrl('logo-footer.png')} alt="" className="qs-seal-logo" width="505" height="285" />
+                </div>
+                <figcaption className="qs-badge">
+                    <span className="qs-badge-label">Cristales</span>
+                    <span className="qs-badge-logos">
+                        <img src={assetUrl('brand-hoya.svg')} alt="HOYA" width="70" height="24" />
+                        <span className="qs-badge-sep" aria-hidden="true" />
+                        <img src={assetUrl('brand-optiland.png')} alt="Optiland" width="62" height="24" />
+                    </span>
+                    <span className="qs-badge-note">Te orientamos según tu receta</span>
+                </figcaption>
+            </figure>
         </div>
     </section>
+
+
+    <Coleccion />
+    <ComoFunciona />
 
 
     {/* ===========================================================
@@ -605,10 +992,10 @@ export default function App() {
          =========================================================== */}
     <section id="optiland" className="py-28 lg:py-36 bg-white">
         <div className="max-w-6xl mx-auto px-6 lg:px-12">
-            <div id="optiland-header" className="text-center mb-20" style={{"opacity":"0"}}>
+            <div id="optiland-header" className="text-center mb-20">
                 <div className="flex items-center justify-center gap-3 mb-6">
                     <div className="divider"></div>
-                    <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Tecnología</span>
+                    <span className="text-xs tracking-[.3em] uppercase font-outfit text-brand-muted">Tecnología</span>
                     <div className="divider"></div>
                 </div>
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-outfit font-bold text-brand-text leading-tight">
@@ -626,7 +1013,7 @@ export default function App() {
             </div>
 
             <div className="technology-card-grid">
-                <div className="card p-8 flex flex-col" id="opt-card-2" style={{"opacity":"0","transform":"translateY(30px)"}}>
+                <div className="card p-8 flex flex-col" id="opt-card-2">
                     <div className="feature-icon mb-5">
                         <svg className="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
@@ -637,20 +1024,20 @@ export default function App() {
                         <ArrowUpRight size={16} aria-hidden="true" />
                     </a>
                 </div>
-                <div className="card p-8 flex flex-col" id="opt-card-3" style={{"opacity":"0","transform":"translateY(30px)"}}>
+                <div className="card p-8 flex flex-col" id="opt-card-3">
                     <div className="feature-icon mb-5">
                         <svg className="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeWidth="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                     </div>
                     <h3 className="text-lg font-outfit font-semibold text-brand-text mb-3">Protección Completa</h3>
                     <p className="text-brand-muted text-sm leading-relaxed flex-grow">Comprueba cómo actúan los tratamientos fotocromático, Blue Cut y UV directamente sobre los cristales.</p>
-                    <button id="open-filter-modal" className="btn-ver-mas mt-5 w-full justify-center">
+                    <button id="open-filter-modal" type="button" className="btn-ver-mas mt-5 w-full justify-center" aria-haspopup="dialog" onClick={openFilterModal} onPointerEnter={() => setFilterImagesRequested(true)} onFocus={() => setFilterImagesRequested(true)}>
                         Explorar filtros
                         <ChevronDown size={16} aria-hidden="true" />
                     </button>
                 </div>
             </div>
 
-            <div className="lens-type-group" id="opt-types" style={{"opacity":"0"}}>
+            <div className="lens-type-group" id="opt-types">
                 <div className="lens-type-grid">
                     {LENS_TYPES.map((lensType) => (
                         <article className="lens-type-card" key={lensType.name}>
@@ -677,8 +1064,8 @@ export default function App() {
     {/* ===========================================================
          MODAL — EXPERIENCIA DE FILTROS ÓPTICOS
          =========================================================== */}
-    <div id="filter-modal" className="fixed inset-0 bg-brand-bg z-[100] overflow-y-auto">
-        <button className="filter-modal-close" id="close-filter-modal" aria-label="Cerrar">
+    <div id="filter-modal" className="fixed inset-0 bg-brand-bg z-[100] overflow-y-auto" role="dialog" aria-modal="true" aria-label="Experiencia de filtros ópticos" inert={!filterOpen}>
+        <button type="button" className="filter-modal-close" id="close-filter-modal" aria-label="Cerrar filtros" onClick={closeFilterModal}>
             <svg className="w-5 h-5" stroke="#1A1A1A" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
 
@@ -691,8 +1078,8 @@ export default function App() {
                 </header>
 
                 <div className="photo-scene filter-demo-stage">
-                    <img src={assetUrl('filtros_1.jpg')} alt="Lentes antes de activar el tratamiento fotocromático" />
-                    <img src={assetUrl('filtros_2.jpg')} className="capa-fotocromatica" data-filter-overlay alt="Lentes con el tratamiento fotocromático activado" />
+                    <img src={filterImagesRequested ? assetUrl('filtros_1.webp') : undefined} decoding="async" alt="Lentes antes de activar el tratamiento fotocromático" />
+                    <img src={filterImagesRequested ? assetUrl('filtros_2.webp') : undefined} decoding="async" className="capa-fotocromatica" data-filter-overlay alt="Lentes con el tratamiento fotocromático activado" />
                     <div className="photo-label">Cristal transparente</div>
                     <div className="photo-progress-bar"><div className="photo-progress-fill"></div></div>
                 </div>
@@ -710,8 +1097,8 @@ export default function App() {
                 </header>
 
                 <div className="photo-scene filter-demo-stage">
-                    <img src={assetUrl('bluecut-before.jpg')} alt="Lentes con reflejo de luz azul antes de activar el filtro Blue Cut" />
-                    <img src={assetUrl('bluecut-after.jpg')} className="bluecut-filter-layer" data-filter-overlay alt="Lentes con el reflejo azul reducido después de activar el filtro Blue Cut" />
+                    <img src={filterImagesRequested ? assetUrl('bluecut-before.webp') : undefined} decoding="async" alt="Lentes con reflejo de luz azul antes de activar el filtro Blue Cut" />
+                    <img src={filterImagesRequested ? assetUrl('bluecut-after.webp') : undefined} decoding="async" className="bluecut-filter-layer" data-filter-overlay alt="Lentes con el reflejo azul reducido después de activar el filtro Blue Cut" />
                     <div className="photo-label">Sin filtro</div>
                     <div className="photo-progress-bar"><div className="photo-progress-fill"></div></div>
                 </div>
@@ -729,8 +1116,8 @@ export default function App() {
                 </header>
 
                 <div className="photo-scene filter-demo-stage">
-                    <img src={assetUrl('uv-before.jpg')} alt="Lentes sin protección UV expuestos a la luz solar" />
-                    <img src={assetUrl('uv-after.jpg')} className="uv-filter-layer" data-filter-overlay alt="Lentes con protección UV400 activada" />
+                    <img src={filterImagesRequested ? assetUrl('uv-before.webp') : undefined} decoding="async" alt="Lentes sin protección UV expuestos a la luz solar" />
+                    <img src={filterImagesRequested ? assetUrl('uv-after.webp') : undefined} decoding="async" className="uv-filter-layer" data-filter-overlay alt="Lentes con protección UV400 activada" />
                     <div className="photo-label">Sin filtro UV</div>
                     <div className="photo-progress-bar"><div className="photo-progress-fill"></div></div>
                 </div>
@@ -741,7 +1128,7 @@ export default function App() {
 
         <div className="filter-modal-footer">
             <p>Ahora puedes elegir el tratamiento que mejor acompaña tu rutina.</p>
-            <button className="btn-primary" onClick={() => document.getElementById('close-filter-modal').click()}>
+            <button type="button" className="btn-primary" onClick={closeFilterModal}>
                 Volver a Tecnología
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="2" d="M5 15l7-7 7 7"/></svg>
             </button>
@@ -750,99 +1137,129 @@ export default function App() {
 
 
     {/* ===========================================================
-         SECCIÓN 4 — OPERATIVOS OFTALMOLÓGICOS
+         SECCIÓN 4 — OPERATIVOS OFTALMOLÓGICOS (empresas)
          =========================================================== */}
-    <section id="operativos" className="py-24 lg:py-28">
-        <div className="max-w-5xl mx-auto px-6 lg:px-12">
-            <div id="operativos-content" className="grid grid-cols-1 lg:grid-cols-5 gap-10 items-center" style={{"opacity":"0","transform":"translateY(30px)"}}>
-                {/* Ícono */}
-                <div className="lg:col-span-2 flex justify-center">
-                    <div className="w-32 h-32 rounded-3xl bg-white border border-brand-border flex items-center justify-center">
-                        <svg className="w-14 h-14 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeWidth="1.3" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                        </svg>
-                    </div>
+    <section id="operativos" className="ops-section">
+        <div id="operativos-content" className="ops-card">
+            <div className="ops-copy">
+                <div className="section-eyebrow">
+                    <span className="divider" aria-hidden="true" />
+                    <span>Servicio para empresas</span>
                 </div>
-                {/* Texto */}
-                <div className="lg:col-span-3">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="divider"></div>
-                        <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Servicio Empresarial</span>
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-outfit font-bold text-brand-text leading-tight mb-4">
-                        <WaveTitle text="Operativos " /><WaveTitle text="Oftalmológicos" className="text-brand-gold" />
-                    </h2>
-                    <p className="text-brand-text leading-relaxed text-[1rem] font-medium">
-                        Cuando atender la salud visual exige traslados, permisos y horas fuera del puesto, suele postergarse.
-                    </p>
-                    <p className="mt-3 text-brand-muted leading-relaxed text-[.88rem]">
-                        Optivision W&M lleva la atención óptica a tus dependencias y coordina una jornada ordenada para que tus colaboradores puedan evaluarse sin convertirlo en media jornada fuera de la empresa.
-                    </p>
-                    <ul className="mt-6 border-y border-brand-border divide-y divide-brand-border" aria-label="Beneficios para la empresa">
-                        <li className="flex items-center gap-3 py-3 text-sm text-brand-text"><span className="w-1.5 h-1.5 rounded-full bg-brand-gold" aria-hidden="true"></span>Menos tiempo fuera del puesto</li>
-                        <li className="flex items-center gap-3 py-3 text-sm text-brand-text"><span className="w-1.5 h-1.5 rounded-full bg-brand-gold" aria-hidden="true"></span>Atención en tus dependencias</li>
-                        <li className="flex items-center gap-3 py-3 text-sm text-brand-text"><span className="w-1.5 h-1.5 rounded-full bg-brand-gold" aria-hidden="true"></span>Coordinación simple para RR.HH.</li>
-                    </ul>
+                <h2 className="section-title font-outfit font-bold">
+                    <WaveTitle text="Operativos " /><WaveTitle text="Oftalmológicos" className="text-brand-gold" />
+                </h2>
+                <p className="ops-lead">
+                    Cuando atender la salud visual exige traslados, permisos y horas fuera del puesto, suele postergarse.
+                </p>
+                <p className="ops-text">
+                    Optivision W&M lleva la atención óptica a tus dependencias y coordina una jornada ordenada para que tus colaboradores puedan evaluarse sin convertirlo en media jornada fuera de la empresa.
+                </p>
+                <ul className="ops-benefits" aria-label="Beneficios para la empresa">
+                    <li><Check size={16} aria-hidden="true" />Menos tiempo fuera del puesto</li>
+                    <li><Check size={16} aria-hidden="true" />Atención en tus dependencias</li>
+                    <li><Check size={16} aria-hidden="true" />Coordinación simple para RR.HH.</li>
+                </ul>
+                <div className="ops-actions">
                     <a
-                        href={OPERATIVOS_GMAIL_URL}
+                        href={OPERATIVOS_MAIL_URL}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn-primary mt-6 inline-flex text-sm transition-all duration-300"
+                        className="ops-cta"
                         aria-label="Solicitar información sobre un operativo oftalmológico por Gmail"
                     >
-                        Solicitar Operativo
-                        <ArrowUpRight size={16} className="ml-2" aria-hidden="true" />
+                        Solicitar operativo
+                        <ArrowUpRight size={16} aria-hidden="true" />
                     </a>
+                    <p className="ops-mail">
+                        <span>o escríbenos a</span>
+                        <a href={`mailto:${OPERATIVOS_EMAIL}`}>{OPERATIVOS_EMAIL}</a>
+                        <button type="button" onClick={copyEmail} className="ops-copy-btn">
+                            {emailCopied ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
+                            <span aria-live="polite">{emailCopied ? 'Copiado' : 'Copiar'}</span>
+                        </button>
+                    </p>
                 </div>
             </div>
+            <ol className="ops-timeline" aria-label="Cómo es un operativo">
+                <li>
+                    <span className="ops-step">01</span>
+                    <div><h3>Coordinamos con RR.HH.</h3><p>Definimos fecha, horario, lugar y cuántas personas se atenderán.</p></div>
+                </li>
+                <li>
+                    <span className="ops-step">02</span>
+                    <div><h3>Vamos a tu empresa</h3><p>Llevamos la atención óptica a tus dependencias en una jornada ordenada por turnos.</p></div>
+                </li>
+                <li>
+                    <span className="ops-step">03</span>
+                    <div><h3>Tu equipo se evalúa</h3><p>Sin traslados ni permisos largos: cada colaborador vuelve pronto a su puesto.</p></div>
+                </li>
+            </ol>
         </div>
     </section>
 
 
     {/* ===========================================================
-         SECCIÓN 5 — NUESTRA MISIÓN
+         SECCIÓN 5 — PROPÓSITO (banda con la frase de la marca)
          =========================================================== */}
-    <section id="mision" className="py-28 lg:py-36 bg-white">
-        <div className="max-w-6xl mx-auto px-6 lg:px-12">
-            <div id="mision-header" className="text-center mb-20" style={{"opacity":"0"}}>
-                <div className="flex items-center justify-center gap-3 mb-6">
-                    <div className="divider"></div>
-                    <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Propósito</span>
-                    <div className="divider"></div>
-                </div>
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-outfit font-bold text-brand-text leading-tight">
-                    <WaveTitle text="Nuestra " /><WaveTitle text="Misión" className="text-brand-gold" />
-                </h2>
+    <section id="mision" className="mision-band">
+        <div id="mision-header" className="mision-inner">
+            <p className="mision-eyebrow">Nuestro propósito</p>
+            <blockquote className="mision-quote">
+                <p>Ver bien es vivir bien.</p>
+                <p className="mision-quote__accent">Transformamos miradas, una visión a la vez.</p>
+            </blockquote>
+            <ul className="mision-values">
+                <li>Precio justo, sin el sobreprecio de las grandes marcas</li>
+                <li>Atención cálida y profesional</li>
+                <li>Cristales de laboratorios reconocidos</li>
+            </ul>
+        </div>
+    </section>
+
+
+    {/* ===========================================================
+         SECCIÓN 6 — RESEÑAS (CARRUSEL)
+         =========================================================== */}
+    <section id="reviews" className="reviews-section">
+        <div className="reviews-head reveal">
+            <h2 className="section-title font-outfit font-bold text-brand-text">
+                Lo que dicen nuestros <span className="text-brand-gold">pacientes</span>
+            </h2>
+            <a className="rating-pill" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer" data-cta="google-reviews">
+                <span className="rating-pill__score">{GOOGLE_RATING.score}</span>
+                <StarRow className="" />
+                <span className="rating-pill__count">{GOOGLE_RATING.count} reseñas en Google</span>
+                <ArrowUpRight size={15} aria-hidden="true" />
+            </a>
+            <div className="reviews-actions">
+                <a className="reviews-link" href={GOOGLE_REVIEWS_URL} target="_blank" rel="noopener noreferrer">Ver todas y dejar tu reseña</a>
+                <button
+                    type="button"
+                    className="reviews-toggle"
+                    aria-pressed={reviewsPaused}
+                    onClick={() => setReviewsPaused((paused) => !paused)}
+                >
+                    {reviewsPaused ? <Play size={14} aria-hidden="true" /> : <Pause size={14} aria-hidden="true" />}
+                    {reviewsPaused ? 'Reanudar' : 'Pausar'}
+                </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-                <div id="mis-1" className="text-center" style={{"opacity":"0","transform":"translateY(30px)"}}>
-                    <div className="feature-icon mx-auto mb-5">
-                        <svg className="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    </div>
-                    <h3 className="text-lg font-outfit font-semibold text-brand-text mb-3">Innovación Constante</h3>
-                    <p className="text-brand-muted text-sm leading-relaxed max-w-xs mx-auto">Última tecnología de diagnóstico y tratamiento visual para resultados precisos.</p>
-                </div>
-                <div id="mis-2" className="text-center" style={{"opacity":"0","transform":"translateY(30px)"}}>
-                    <div className="feature-icon mx-auto mb-5">
-                        <svg className="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                    </div>
-                    <h3 className="text-lg font-outfit font-semibold text-brand-text mb-3">Compromiso Social</h3>
-                    <p className="text-brand-muted text-sm leading-relaxed max-w-xs mx-auto">Protegemos tu salud visual y tu bolsillo, asegurando que pagues el valor real de tus lentes y no el sobreprecio de las grandes marcas.</p>
-                </div>
-                <div id="mis-3" className="text-center" style={{"opacity":"0","transform":"translateY(30px)"}}>
-                    <div className="feature-icon mx-auto mb-5">
-                        <svg className="w-6 h-6 text-brand-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeWidth="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    </div>
-                    <h3 className="text-lg font-outfit font-semibold text-brand-text mb-3">Compromiso Humano</h3>
-                    <p className="text-brand-muted text-sm leading-relaxed max-w-xs mx-auto">Tu bienestar visual es nuestra prioridad con un servicio cálido y profesional.</p>
-                </div>
-            </div>
-            <div id="mis-quote" className="mt-20 text-center" style={{"opacity":"0"}}>
-                <div className="divider mx-auto mb-8"></div>
-                <blockquote className="text-xl md:text-2xl font-outfit font-light text-brand-muted italic max-w-2xl mx-auto leading-relaxed">
-                    "Ver bien es vivir bien. Transformamos miradas,
-                    <span className="text-brand-gold not-italic font-medium">una visión a la vez.</span>"
-                </blockquote>
+        </div>
+
+        <div className="reviews-viewport relative w-full flex overflow-hidden">
+            {/* Doble track para efecto infinito: la copia se oculta a lectores de pantalla */}
+            <div className={`reviews-track flex w-max animate-marquee gap-6 px-3${reviewsPaused ? ' is-paused' : ''}`}>
+                {[0, 1].flatMap((copy) => REVIEWS.map((review) => (
+                    <figure
+                        key={`${copy}-${review.author}`}
+                        className="review-card"
+                        aria-hidden={copy === 1 ? 'true' : undefined}
+                    >
+                        <StarRow />
+                        <blockquote>"{review.text}"</blockquote>
+                        <figcaption>{review.author} <span>· Google</span></figcaption>
+                    </figure>
+                )))}
             </div>
         </div>
     </section>
@@ -856,7 +1273,7 @@ export default function App() {
             <div id="ct-header" className="text-center mb-10 lg:mb-14">
                 <div className="flex items-center justify-center gap-3 mb-6">
                     <div className="divider"></div>
-                    <span className="text-[10px] tracking-[.3em] uppercase font-outfit text-brand-muted">Encuéntranos</span>
+                    <span className="text-xs tracking-[.3em] uppercase font-outfit text-brand-muted">Encuéntranos</span>
                     <div className="divider"></div>
                 </div>
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-outfit font-bold text-brand-text leading-tight">
@@ -936,7 +1353,7 @@ export default function App() {
                     {/* WhatsApp — Botón llamativo */}
                     <div className="text-center pt-4">
                         {/* ✏️ Cambia el número en el href */}
-                        <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-whatsapp whatsapp-flow">
+                        <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-whatsapp whatsapp-flow" data-cta="contacto">
                             <MessageCircle size={20} aria-hidden="true" /><span>Escríbenos por WhatsApp</span>
                         </a>
                     </div>
@@ -946,159 +1363,26 @@ export default function App() {
     </section>
 
 
-    {/* ===========================================================
-         SECCIÓN 7 — RESEÑAS (CARRUSEL)
-         =========================================================== */}
-    <section id="reviews" className="py-16 bg-brand-cream overflow-hidden border-t border-brand-border">
-        <div className="max-w-6xl mx-auto px-6 lg:px-12 mb-10 text-center">
-            <h2 className="text-2xl md:text-3xl font-outfit font-bold text-brand-text">
-                Lo que dicen nuestros <span className="text-brand-gold">Pacientes</span>
-            </h2>
-            <p className="text-brand-muted text-sm mt-3">Opiniones reales en Google Maps</p>
-        </div>
-        
-        <div className="relative w-full flex overflow-hidden">
-            {/* Doble track para efecto infinito */}
-            <div className="flex w-max animate-marquee gap-6 px-3">
-                {/* Reseña 1 */}
-                <div className="w-80 bg-white p-6 rounded-xl border border-brand-border flex-shrink-0 shadow-sm">
-                    <div className="flex gap-1 text-brand-gold mb-3">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                    </div>
-                    <p className="text-brand-muted text-[.9rem] italic mb-4 leading-relaxed">"Son excelentes 7 de 7. Muchas gracias. Muy educados y amables en la atención al público, lindos Marcos y buena calidad."</p>
-                    <p className="text-brand-text font-semibold font-outfit text-sm">— Andreina P.</p>
-                </div>
-                {/* Reseña 2 */}
-                <div className="w-80 bg-white p-6 rounded-xl border border-brand-border flex-shrink-0 shadow-sm">
-                    <div className="flex gap-1 text-brand-gold mb-3">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                    </div>
-                    <p className="text-brand-muted text-[.9rem] italic mb-4 leading-relaxed">"Muy buena atención, muy recomendados, y lo mejor precio y calidad, gracias por su profesionalismo"</p>
-                    <p className="text-brand-text font-semibold font-outfit text-sm">— Jonathan S.</p>
-                </div>
-                {/* Reseña 3 */}
-                <div className="w-80 bg-white p-6 rounded-xl border border-brand-border flex-shrink-0 shadow-sm">
-                    <div className="flex gap-1 text-brand-gold mb-3">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                    </div>
-                    <p className="text-brand-muted text-[.9rem] italic mb-4 leading-relaxed">"Muy buena atención, calidad en sus productos y los precios muy muy buenos, súper recomendados no duden en visitarlos 🥳"</p>
-                    <p className="text-brand-text font-semibold font-outfit text-sm">— mildred t.</p>
-                </div>
-                {/* Reseña 4 */}
-                <div className="w-80 bg-white p-6 rounded-xl border border-brand-border flex-shrink-0 shadow-sm">
-                    <div className="flex gap-1 text-brand-gold mb-3">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                    </div>
-                    <p className="text-brand-muted text-[.9rem] italic mb-4 leading-relaxed">"Excelente Atención y Servicio Profesional!! Los Recomiendo"</p>
-                    <p className="text-brand-text font-semibold font-outfit text-sm">— Carlos B.</p>
-                </div>
-                {/* Reseña 5 */}
-                <div className="w-80 bg-white p-6 rounded-xl border border-brand-border flex-shrink-0 shadow-sm">
-                    <div className="flex gap-1 text-brand-gold mb-3">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                    </div>
-                    <p className="text-brand-muted text-[.9rem] italic mb-4 leading-relaxed">"Excelente atención , todo de muy buena calidad!! Súper recomendados!!!"</p>
-                    <p className="text-brand-text font-semibold font-outfit text-sm">— roneldis c.</p>
-                </div>
-                
-                {/* DUPLICADO (Para ilusión infinita) */}
-                <div className="w-80 bg-white p-6 rounded-xl border border-brand-border flex-shrink-0 shadow-sm">
-                    <div className="flex gap-1 text-brand-gold mb-3">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                    </div>
-                    <p className="text-brand-muted text-[.9rem] italic mb-4 leading-relaxed">"Son excelentes 7 de 7. Muchas gracias. Muy educados y amables en la atención al público, lindos Marcos y buena calidad."</p>
-                    <p className="text-brand-text font-semibold font-outfit text-sm">— Andreina P.</p>
-                </div>
-                <div className="w-80 bg-white p-6 rounded-xl border border-brand-border flex-shrink-0 shadow-sm">
-                    <div className="flex gap-1 text-brand-gold mb-3">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                    </div>
-                    <p className="text-brand-muted text-[.9rem] italic mb-4 leading-relaxed">"Muy buena atención, muy recomendados, y lo mejor precio y calidad, gracias por su profesionalismo"</p>
-                    <p className="text-brand-text font-semibold font-outfit text-sm">— Jonathan S.</p>
-                </div>
-                <div className="w-80 bg-white p-6 rounded-xl border border-brand-border flex-shrink-0 shadow-sm">
-                    <div className="flex gap-1 text-brand-gold mb-3">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                    </div>
-                    <p className="text-brand-muted text-[.9rem] italic mb-4 leading-relaxed">"Muy buena atención, calidad en sus productos y los precios muy muy buenos, súper recomendados no duden en visitarlos 🥳"</p>
-                    <p className="text-brand-text font-semibold font-outfit text-sm">— mildred t.</p>
-                </div>
-                <div className="w-80 bg-white p-6 rounded-xl border border-brand-border flex-shrink-0 shadow-sm">
-                    <div className="flex gap-1 text-brand-gold mb-3">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                    </div>
-                    <p className="text-brand-muted text-[.9rem] italic mb-4 leading-relaxed">"Excelente Atención y Servicio Profesional!! Los Recomiendo"</p>
-                    <p className="text-brand-text font-semibold font-outfit text-sm">— Carlos B.</p>
-                </div>
-                <div className="w-80 bg-white p-6 rounded-xl border border-brand-border flex-shrink-0 shadow-sm">
-                    <div className="flex gap-1 text-brand-gold mb-3">
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                    </div>
-                    <p className="text-brand-muted text-[.9rem] italic mb-4 leading-relaxed">"Excelente atención , todo de muy buena calidad!! Súper recomendados!!!"</p>
-                    <p className="text-brand-text font-semibold font-outfit text-sm">— roneldis c.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+    {/* SECCIÓN 8 — PREGUNTAS FRECUENTES (después de Contacto) */}
+    <PreguntasFrecuentes />
+    </main>
 
-    {/* FOOTER */}
-    <footer className="border-t border-brand-border py-10 px-6 lg:px-16 bg-white">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-5">
-            <img src={assetUrl('logo-user.png')} alt="Optivision W&M" className="h-8"  />
-            <p className="text-brand-muted text-xs font-outfit">© 2026 Optivision W&M. Todos los derechos reservados.</p>
-            <div className="flex items-center gap-4">
-                <a href="https://www.instagram.com/optivisionwm/?hl=es" target="_blank" rel="noopener noreferrer" className="text-brand-muted hover:text-brand-gold transition-colors" aria-label="Instagram"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
-            </div>
-        </div>
-    </footer>
+    <SiteFooter />
 
-
-    {/* ===========================================================
-         JAVASCRIPT — GSAP ScrollTrigger
-         =========================================================== */}
-    
-
-
+    {/* Botón flotante de WhatsApp: aparece al pasar la portada */}
+    <a
+        href={WHATSAPP_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`wa-float${pastHero && !menuOpen && !filterOpen ? ' is-visible' : ''}`}
+        aria-label="Cotizar por WhatsApp"
+        aria-hidden={pastHero && !menuOpen && !filterOpen ? undefined : 'true'}
+        tabIndex={pastHero && !menuOpen && !filterOpen ? undefined : -1}
+        data-cta="flotante"
+    >
+        <MessageCircle size={22} aria-hidden="true" />
+        <span>Cotizar</span>
+    </a>
     </>
   );
 }
